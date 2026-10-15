@@ -1,0 +1,568 @@
+{
+  "schema_version": "1.0",
+  "dataset": "ETH3D low-resolution two-view stereo training subset",
+  "prepared_at": "2026-10-15T15:28:38.776580+00:00",
+  "source_url": "https://www.eth3d.net/datasets",
+  "documentation_url": "https://www.eth3d.net/documentation",
+  "license": "CC-BY-NC-SA-4.0",
+  "license_url": "https://creativecommons.org/licenses/by-nc-sa/4.0/",
+  "attribution": "Thomas Schöps et al., ETH3D, CVPR 2017",
+  "ground_truth_available": true,
+  "ground_truth_origin": "Registered laser-scanner measurements, not model predictions",
+  "selection_method": "Six outdoor scenes inspected visually before predictions. Two scenes include valid laser-reference pixels at or below 1.5 m; four provide negatives. Selection uses source imagery and reference depth only, never model output.",
+  "selection_frozen_before_model_inference": true,
+  "depth_convention": "z_depth",
+  "near_threshold_m": 1.5,
+  "evaluation_range_m": {
+    "min": 0.1,
+    "max": 80.0
+  },
+  "alignment": "none: no scale or shift fitting",
+  "archives": [
+    {
+      "url": "https://www.eth3d.net/data/two_view_training.7z",
+      "sha256": "cb7683a01ba037759f30b5a4f561d302453e20f1f7095cbdc51c8564b218224b"
+    },
+    {
+      "url": "https://www.eth3d.net/data/two_view_training_gt.7z",
+      "sha256": "e440f7ec4444dfd2af33a44495f325a3aed06762432e2419277596ba7dcb9b40"
+    }
+  ],
+  "limitations": [
+    "Monochrome real images; not representative of the final RGB glasses camera.",
+    "Close foreground surfaces include branches, poles and ropes outside COCO classes.",
+    "Only pixels with laser ground truth visible in both stereo views are evaluated.",
+    "This is a selected diagnostic subset, not the full ETH3D benchmark.",
+    "Outdoor playground views share a location and are not independent environments."
+  ],
+  "images": [
+    {
+      "id": "playground_3l",
+      "filename": "playground_3l.jpg",
+      "label": "playground_3l",
+      "description": "Aire de jeux extérieure : poteaux, cordes et sol proches.",
+      "source_url": "https://www.eth3d.net/datasets",
+      "source_scene": "playground_3l",
+      "license": "CC-BY-NC-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-nc-sa/4.0/",
+      "author": "ETH3D dataset authors (Thomas Schöps et al.)",
+      "dimensions": [
+        941,
+        490
+      ],
+      "sha256": "36b6f3c0147de01c71c81e91d7b984041659b1ff03f6ca88962f0b8b0c7ef676",
+      "original_path": "originals/playground_3l/im0.png",
+      "original_sha256": "da92bd488d073e8d3bba01ca31b34e1abe587a726115412794147e4cc4e26277",
+      "preprocessing": {
+        "resize": false,
+        "crop": false,
+        "generated": false,
+        "mode": "grayscale source replicated as RGB",
+        "jpeg_quality": 95
+      },
+      "intrinsics": {
+        "camera_model": "PINHOLE",
+        "matrix": [
+          [
+            542.019,
+            0.0,
+            541.922
+          ],
+          [
+            0.0,
+            542.019,
+            255.202
+          ],
+          [
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "fx_px": 542.019,
+        "fy_px": 542.019,
+        "cx_px": 541.922,
+        "cy_px": 255.202,
+        "baseline_m": 0.0595499,
+        "disparity_offset_px": 0.0,
+        "width": 941,
+        "height": 490,
+        "pixel_origin": "top-left image corner, per ETH3D documentation"
+      },
+      "ground_truth": {
+        "depth_path": "ground-truth/playground_3l_depth.npy",
+        "valid_mask_path": "ground-truth/playground_3l_valid.npy",
+        "depth_convention": "z_depth",
+        "units": "meters",
+        "dtype": "float32",
+        "invalid_depth": "NaN",
+        "formula": "z_m = (baseline_mm / 1000) * fx_px / (disparity_px + doffs_px)",
+        "formula_source": "https://vision.middlebury.edu/stereo/data/scenes2014/",
+        "mask_rule": "mask0nocc == 255 and finite disparity and disparity + doffs > 0",
+        "mask_semantics": "Only valid laser-reference pixels observed in both views",
+        "depth_sha256": "5133ad85be25762af1aa2f92a36d9db891677e49515bad9cc6721df5acd47711",
+        "valid_mask_sha256": "e311acb802bafb954bb2916f18423a9b6badf3cd69ab6990cb54c04c1450e94b",
+        "source_files": {
+          "disp0GT.pfm": {
+            "path": "originals/playground_3l/disp0GT.pfm",
+            "sha256": "daa0c4e3b98efbb0ed7d65b00bc76380cb7b9621fd0495a7011ebf2e12d50513"
+          },
+          "mask0nocc.png": {
+            "path": "originals/playground_3l/mask0nocc.png",
+            "sha256": "461449c1335688bfa67943ef9ad96621b2f0208d72f1e0d49f97ccedf544c7f5"
+          },
+          "calib.txt": {
+            "path": "originals/playground_3l/calib.txt",
+            "sha256": "b3b8fef7a0e5ea4399f99e826b90f8f5cc0afd719e4d518da4b791454da31fe2"
+          }
+        },
+        "valid_pixels": 171079,
+        "valid_fraction": 0.37103168578802403,
+        "min_depth_m": 1.0896062850952148,
+        "median_depth_m": 1.9191126823425293,
+        "max_depth_m": 14.967758178710938,
+        "near_pixels_at_1_5_m": 27185
+      }
+    },
+    {
+      "id": "forest_1s",
+      "filename": "forest_1s.jpg",
+      "label": "forest_1s",
+      "description": "Sous-bois extérieur : branches fines et végétation proches.",
+      "source_url": "https://www.eth3d.net/datasets",
+      "source_scene": "forest_1s",
+      "license": "CC-BY-NC-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-nc-sa/4.0/",
+      "author": "ETH3D dataset authors (Thomas Schöps et al.)",
+      "dimensions": [
+        715,
+        441
+      ],
+      "sha256": "605a45f454812491a61400ace7a2aa0cb1e6390c00449cecb298b84ec0d12c6b",
+      "original_path": "originals/forest_1s/im0.png",
+      "original_sha256": "19f45b60f1cfb90cefb4bb3ec91ffd0e2d2d75ffd48f0542b38a3a4d15542415",
+      "preprocessing": {
+        "resize": false,
+        "crop": false,
+        "generated": false,
+        "mode": "grayscale source replicated as RGB",
+        "jpeg_quality": 95
+      },
+      "intrinsics": {
+        "camera_model": "PINHOLE",
+        "matrix": [
+          [
+            712.53,
+            0.0,
+            370.122
+          ],
+          [
+            0.0,
+            712.53,
+            239.725
+          ],
+          [
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "fx_px": 712.53,
+        "fy_px": 712.53,
+        "cx_px": 370.122,
+        "cy_px": 239.725,
+        "baseline_m": 0.059610100000000006,
+        "disparity_offset_px": 0.0,
+        "width": 715,
+        "height": 441,
+        "pixel_origin": "top-left image corner, per ETH3D documentation"
+      },
+      "ground_truth": {
+        "depth_path": "ground-truth/forest_1s_depth.npy",
+        "valid_mask_path": "ground-truth/forest_1s_valid.npy",
+        "depth_convention": "z_depth",
+        "units": "meters",
+        "dtype": "float32",
+        "invalid_depth": "NaN",
+        "formula": "z_m = (baseline_mm / 1000) * fx_px / (disparity_px + doffs_px)",
+        "formula_source": "https://vision.middlebury.edu/stereo/data/scenes2014/",
+        "mask_rule": "mask0nocc == 255 and finite disparity and disparity + doffs > 0",
+        "mask_semantics": "Only valid laser-reference pixels observed in both views",
+        "depth_sha256": "74fede4177c71491ebb83d179a9b5ddcbc07b95e18c5d497d200262973d95c91",
+        "valid_mask_sha256": "cdea82b54e26a93491d73d4643ab199cfe842d51b147120f5eed00f27c547e85",
+        "source_files": {
+          "disp0GT.pfm": {
+            "path": "originals/forest_1s/disp0GT.pfm",
+            "sha256": "94eb065e31bf5a4719a6bfca5722ed738e57ce1ca2f56b3b8d4775c21859e951"
+          },
+          "mask0nocc.png": {
+            "path": "originals/forest_1s/mask0nocc.png",
+            "sha256": "86987eeda46a865220a975790c0236b7a84f2260e652605de8d04bb75f3e2656"
+          },
+          "calib.txt": {
+            "path": "originals/forest_1s/calib.txt",
+            "sha256": "4f1617c31f09161540a78a0f75bebf0f1d9702a1673d31baf88bc5859fd0e40f"
+          }
+        },
+        "valid_pixels": 122711,
+        "valid_fraction": 0.389169560598132,
+        "min_depth_m": 0.6930042505264282,
+        "median_depth_m": 3.2930495738983154,
+        "max_depth_m": 9.033132553100586,
+        "near_pixels_at_1_5_m": 4648
+      }
+    },
+    {
+      "id": "facade_1s",
+      "filename": "facade_1s.jpg",
+      "label": "facade_1s",
+      "description": "Façade extérieure : murs et fenêtres à plusieurs distances.",
+      "source_url": "https://www.eth3d.net/datasets",
+      "source_scene": "facade_1s",
+      "license": "CC-BY-NC-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-nc-sa/4.0/",
+      "author": "ETH3D dataset authors (Thomas Schöps et al.)",
+      "dimensions": [
+        707,
+        425
+      ],
+      "sha256": "92a94c92c4ef7deb340d6a19fc579647044e62c6c7a22e7fdc9248e233bafcf7",
+      "original_path": "originals/facade_1s/im0.png",
+      "original_sha256": "181cc83771b3b8acab6367027780a4911f78da5ba8283516c72b0eb49d6633aa",
+      "preprocessing": {
+        "resize": false,
+        "crop": false,
+        "generated": false,
+        "mode": "grayscale source replicated as RGB",
+        "jpeg_quality": 95
+      },
+      "intrinsics": {
+        "camera_model": "PINHOLE",
+        "matrix": [
+          [
+            713.178,
+            0.0,
+            380.795
+          ],
+          [
+            0.0,
+            713.178,
+            208.427
+          ],
+          [
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "fx_px": 713.178,
+        "fy_px": 713.178,
+        "cx_px": 380.795,
+        "cy_px": 208.427,
+        "baseline_m": 0.0578202,
+        "disparity_offset_px": 0.0,
+        "width": 707,
+        "height": 425,
+        "pixel_origin": "top-left image corner, per ETH3D documentation"
+      },
+      "ground_truth": {
+        "depth_path": "ground-truth/facade_1s_depth.npy",
+        "valid_mask_path": "ground-truth/facade_1s_valid.npy",
+        "depth_convention": "z_depth",
+        "units": "meters",
+        "dtype": "float32",
+        "invalid_depth": "NaN",
+        "formula": "z_m = (baseline_mm / 1000) * fx_px / (disparity_px + doffs_px)",
+        "formula_source": "https://vision.middlebury.edu/stereo/data/scenes2014/",
+        "mask_rule": "mask0nocc == 255 and finite disparity and disparity + doffs > 0",
+        "mask_semantics": "Only valid laser-reference pixels observed in both views",
+        "depth_sha256": "7dfad4e3dc8115d7a82348dd8eab639e1d0235f7f21540b5ee147d2d88b31ba1",
+        "valid_mask_sha256": "b5760758727c0c33336e14965c107c11a306c9943154c949c139ba069ceefac9",
+        "source_files": {
+          "disp0GT.pfm": {
+            "path": "originals/facade_1s/disp0GT.pfm",
+            "sha256": "ad818427030a9009e97731d8737e319a315b0cff89cb789702f3f9e4e4113881"
+          },
+          "mask0nocc.png": {
+            "path": "originals/facade_1s/mask0nocc.png",
+            "sha256": "5ceee1fa445a78f05049b933d3fecbbfe5491a360b30b502f310a780b82a5db9"
+          },
+          "calib.txt": {
+            "path": "originals/facade_1s/calib.txt",
+            "sha256": "b351cfe174e017db4effd3065ebd931071158fc750a2daad5f4700f46bd6ed96"
+          }
+        },
+        "valid_pixels": 196669,
+        "valid_fraction": 0.6545269989183793,
+        "min_depth_m": 1.9208418130874634,
+        "median_depth_m": 14.589834213256836,
+        "max_depth_m": 26.431047439575195,
+        "near_pixels_at_1_5_m": 0
+      }
+    },
+    {
+      "id": "terrace_2s",
+      "filename": "terrace_2s.jpg",
+      "label": "terrace_2s",
+      "description": "Terrasse extérieure : tables, bancs et façade.",
+      "source_url": "https://www.eth3d.net/datasets",
+      "source_scene": "terrace_2s",
+      "license": "CC-BY-NC-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-nc-sa/4.0/",
+      "author": "ETH3D dataset authors (Thomas Schöps et al.)",
+      "dimensions": [
+        713,
+        434
+      ],
+      "sha256": "18851be0abd04c0de5aeb816c44b5b9c6a08b9e612da26408755b3ad30541ca7",
+      "original_path": "originals/terrace_2s/im0.png",
+      "original_sha256": "649566d650d6d01397f62193b55a8a7bb52b5995b68a8350be103b23fabb7751",
+      "preprocessing": {
+        "resize": false,
+        "crop": false,
+        "generated": false,
+        "mode": "grayscale source replicated as RGB",
+        "jpeg_quality": 95
+      },
+      "intrinsics": {
+        "camera_model": "PINHOLE",
+        "matrix": [
+          [
+            711.499,
+            0.0,
+            376.135
+          ],
+          [
+            0.0,
+            711.499,
+            227.447
+          ],
+          [
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "fx_px": 711.499,
+        "fy_px": 711.499,
+        "cx_px": 376.135,
+        "cy_px": 227.447,
+        "baseline_m": 0.059943199999999995,
+        "disparity_offset_px": 0.0,
+        "width": 713,
+        "height": 434,
+        "pixel_origin": "top-left image corner, per ETH3D documentation"
+      },
+      "ground_truth": {
+        "depth_path": "ground-truth/terrace_2s_depth.npy",
+        "valid_mask_path": "ground-truth/terrace_2s_valid.npy",
+        "depth_convention": "z_depth",
+        "units": "meters",
+        "dtype": "float32",
+        "invalid_depth": "NaN",
+        "formula": "z_m = (baseline_mm / 1000) * fx_px / (disparity_px + doffs_px)",
+        "formula_source": "https://vision.middlebury.edu/stereo/data/scenes2014/",
+        "mask_rule": "mask0nocc == 255 and finite disparity and disparity + doffs > 0",
+        "mask_semantics": "Only valid laser-reference pixels observed in both views",
+        "depth_sha256": "add560c42ba7619b1eb4d1521e8812443d423159a1a6571b7e428ceb3180ac36",
+        "valid_mask_sha256": "24d99e98fa50f327fed9fdb10e3b55b9dffb9189c3117cd9c09c45da1935ccc5",
+        "source_files": {
+          "disp0GT.pfm": {
+            "path": "originals/terrace_2s/disp0GT.pfm",
+            "sha256": "6f7cf6b41737068f1bb8ae5b72bd61787fc69ab7100541e517c293a39580645f"
+          },
+          "mask0nocc.png": {
+            "path": "originals/terrace_2s/mask0nocc.png",
+            "sha256": "968a696794d9324e4528b6833dc0be7d507fbc10ae6d02b42894d3fd442375f0"
+          },
+          "calib.txt": {
+            "path": "originals/terrace_2s/calib.txt",
+            "sha256": "586fb6d58557aada94cda6a2c9e89709495a574daecd60216eed98e198a72a5b"
+          }
+        },
+        "valid_pixels": 160672,
+        "valid_fraction": 0.5192313906968027,
+        "min_depth_m": 2.4488956928253174,
+        "median_depth_m": 4.011378288269043,
+        "max_depth_m": 5.246204853057861,
+        "near_pixels_at_1_5_m": 0
+      }
+    },
+    {
+      "id": "electro_1l",
+      "filename": "electro_1l.jpg",
+      "label": "electro_1l",
+      "description": "Équipement technique extérieur : porte, conduites et façade.",
+      "source_url": "https://www.eth3d.net/datasets",
+      "source_scene": "electro_1l",
+      "license": "CC-BY-NC-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-nc-sa/4.0/",
+      "author": "ETH3D dataset authors (Thomas Schöps et al.)",
+      "dimensions": [
+        927,
+        489
+      ],
+      "sha256": "2d6fb574772d0457055ebf498b66f933fb2dd36a0d3ec468125dc3bb418867be",
+      "original_path": "originals/electro_1l/im0.png",
+      "original_sha256": "2e99b82b97504dfe16829addf5b757ef60c107abcc98508d7a354e2e6d70d7b1",
+      "preprocessing": {
+        "resize": false,
+        "crop": false,
+        "generated": false,
+        "mode": "grayscale source replicated as RGB",
+        "jpeg_quality": 95
+      },
+      "intrinsics": {
+        "camera_model": "PINHOLE",
+        "matrix": [
+          [
+            543.757,
+            0.0,
+            520.82
+          ],
+          [
+            0.0,
+            543.757,
+            293.208
+          ],
+          [
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "fx_px": 543.757,
+        "fy_px": 543.757,
+        "cx_px": 520.82,
+        "cy_px": 293.208,
+        "baseline_m": 0.0598102,
+        "disparity_offset_px": 0.0,
+        "width": 927,
+        "height": 489,
+        "pixel_origin": "top-left image corner, per ETH3D documentation"
+      },
+      "ground_truth": {
+        "depth_path": "ground-truth/electro_1l_depth.npy",
+        "valid_mask_path": "ground-truth/electro_1l_valid.npy",
+        "depth_convention": "z_depth",
+        "units": "meters",
+        "dtype": "float32",
+        "invalid_depth": "NaN",
+        "formula": "z_m = (baseline_mm / 1000) * fx_px / (disparity_px + doffs_px)",
+        "formula_source": "https://vision.middlebury.edu/stereo/data/scenes2014/",
+        "mask_rule": "mask0nocc == 255 and finite disparity and disparity + doffs > 0",
+        "mask_semantics": "Only valid laser-reference pixels observed in both views",
+        "depth_sha256": "4c26333b78fc1b850de76075e765722b4b9fd96312a814b6b90905927480d589",
+        "valid_mask_sha256": "ac7dcf1b55ef08f011352125aba81661d1c09e5591a104ed267cecbe18834549",
+        "source_files": {
+          "disp0GT.pfm": {
+            "path": "originals/electro_1l/disp0GT.pfm",
+            "sha256": "d00707787bf3893b9b14556eec5cc6ca2cc1fc0f54025bb6ca2f98ec5d7bf828"
+          },
+          "mask0nocc.png": {
+            "path": "originals/electro_1l/mask0nocc.png",
+            "sha256": "504ce3f88eca9e15370898618a9b9f6c92d0dcb3a07927b4a9677eadb352ae3e"
+          },
+          "calib.txt": {
+            "path": "originals/electro_1l/calib.txt",
+            "sha256": "8b1d7c8ec37239ccc13d6cbc313950519dca212ce7936f5278c2346f9dfcc9b7"
+          }
+        },
+        "valid_pixels": 369772,
+        "valid_fraction": 0.8157281112192066,
+        "min_depth_m": 2.7245705127716064,
+        "median_depth_m": 3.9439291954040527,
+        "max_depth_m": 6.063258171081543,
+        "near_pixels_at_1_5_m": 0
+      }
+    },
+    {
+      "id": "playground_1l",
+      "filename": "playground_1l.jpg",
+      "label": "playground_1l",
+      "description": "Aire de jeux extérieure : grand équipement et bâtiments.",
+      "source_url": "https://www.eth3d.net/datasets",
+      "source_scene": "playground_1l",
+      "license": "CC-BY-NC-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-nc-sa/4.0/",
+      "author": "ETH3D dataset authors (Thomas Schöps et al.)",
+      "dimensions": [
+        941,
+        490
+      ],
+      "sha256": "40b1910be5450b4cdc15efddbe45345d28d04496384ba6b8330cd51d029a3fed",
+      "original_path": "originals/playground_1l/im0.png",
+      "original_sha256": "c958f6978ce162c28fbfe1ff49b0af07f9e89ec45149d73ef315894f9f9dd685",
+      "preprocessing": {
+        "resize": false,
+        "crop": false,
+        "generated": false,
+        "mode": "grayscale source replicated as RGB",
+        "jpeg_quality": 95
+      },
+      "intrinsics": {
+        "camera_model": "PINHOLE",
+        "matrix": [
+          [
+            542.019,
+            0.0,
+            541.836
+          ],
+          [
+            0.0,
+            542.019,
+            255.198
+          ],
+          [
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "fx_px": 542.019,
+        "fy_px": 542.019,
+        "cx_px": 541.836,
+        "cy_px": 255.198,
+        "baseline_m": 0.0595549,
+        "disparity_offset_px": 0.0,
+        "width": 941,
+        "height": 490,
+        "pixel_origin": "top-left image corner, per ETH3D documentation"
+      },
+      "ground_truth": {
+        "depth_path": "ground-truth/playground_1l_depth.npy",
+        "valid_mask_path": "ground-truth/playground_1l_valid.npy",
+        "depth_convention": "z_depth",
+        "units": "meters",
+        "dtype": "float32",
+        "invalid_depth": "NaN",
+        "formula": "z_m = (baseline_mm / 1000) * fx_px / (disparity_px + doffs_px)",
+        "formula_source": "https://vision.middlebury.edu/stereo/data/scenes2014/",
+        "mask_rule": "mask0nocc == 255 and finite disparity and disparity + doffs > 0",
+        "mask_semantics": "Only valid laser-reference pixels observed in both views",
+        "depth_sha256": "f834e8cc38ae589401fc733ed68f4eb005176681a41b071a0c76e95412be7e04",
+        "valid_mask_sha256": "4f476f4a374dfa432e2c55cd42799fbc886efb43a85130d6a85ed33e5ad61a52",
+        "source_files": {
+          "disp0GT.pfm": {
+            "path": "originals/playground_1l/disp0GT.pfm",
+            "sha256": "2fa4bb79a4ceb03ee05fbd59508e21f2037721de15c461cc05a4edd1833a93d0"
+          },
+          "mask0nocc.png": {
+            "path": "originals/playground_1l/mask0nocc.png",
+            "sha256": "c5a40962f970f7e63dca0b845c49d42834ac06dd1adc4e886571ba76dfa85087"
+          },
+          "calib.txt": {
+            "path": "originals/playground_1l/calib.txt",
+            "sha256": "4d90073e24f4fbd0786b2197506c5158b5196e8352258d9b4957e9ecac46e04b"
+          }
+        },
+        "valid_pixels": 216801,
+        "valid_fraction": 0.4701923702530959,
+        "min_depth_m": 1.6138975620269775,
+        "median_depth_m": 3.5062806606292725,
+        "max_depth_m": 13.681756019592285,
+        "near_pixels_at_1_5_m": 0
+      }
+    }
+  ]
+}

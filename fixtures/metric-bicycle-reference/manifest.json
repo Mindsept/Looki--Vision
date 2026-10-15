@@ -1,0 +1,129 @@
+{
+  "schema_version": "1.0",
+  "dataset": "Middlebury Stereo 2014 Bicycle1-perfect, separate diagnostic reference",
+  "prepared_at": "2026-10-15T15:32:04.694119+00:00",
+  "source_url": "https://vision.middlebury.edu/stereo/data/scenes2014/datasets/Bicycle1-perfect/",
+  "documentation_url": "https://vision.middlebury.edu/stereo/data/scenes2014/",
+  "acquisition_paper": "https://www.cs.middlebury.edu/~schar/papers/datasets-gcpr2014.pdf",
+  "license": null,
+  "license_note": "No explicit dataset reuse license found on the official download page. Public availability is not treated as a grant of unrestricted rights.",
+  "attribution": "Daniel Scharstein et al., Middlebury Stereo Datasets, GCPR 2014",
+  "ground_truth_available": true,
+  "ground_truth_origin": "Calibrated structured-light acquisition, not model predictions",
+  "selection_method": "Single official bicycle scene chosen and inspected before model predictions. Kept separately from the six frozen outdoor ETH3D scenes.",
+  "selection_frozen_before_model_inference": true,
+  "depth_convention": "z_depth",
+  "near_threshold_m": 1.5,
+  "evaluation_range_m": {
+    "min": 0.1,
+    "max": 80.0
+  },
+  "alignment": "none: no scale or shift fitting",
+  "limitations": [
+    "This is a static indoor staged scene, not a street or a glasses camera.",
+    "The measured scene has no valid reference pixels at or below 1.5 m.",
+    "One scene is insufficient to establish model accuracy or generalization.",
+    "Valid structured-light samples include half-occluded regions; this mask is not ETH3D's nonoccluded mask."
+  ],
+  "images": [
+    {
+      "id": "Bicycle1-perfect",
+      "filename": "Bicycle1-perfect.jpg",
+      "label": "Vélo réel avec profondeur de référence",
+      "description": "Vélo jaune en intérieur devant un drap, sac derrière la roue avant.",
+      "source_url": "https://vision.middlebury.edu/stereo/data/scenes2014/datasets/Bicycle1-perfect/",
+      "source_scene": "Bicycle1-perfect",
+      "license": null,
+      "license_note": "No explicit dataset reuse license found on the official download page. Public availability is not treated as a grant of unrestricted rights.",
+      "author": "Middlebury Stereo dataset authors (Daniel Scharstein et al.)",
+      "dimensions": [
+        2988,
+        2008
+      ],
+      "sha256": "a331d69cb689e0f23580dc4d5b5dc346e150c7434822b78469c3bc58a996c2c7",
+      "original_path": "originals/Bicycle1-perfect/im0.png",
+      "original_sha256": "7eaf9f6a9d8c93d28f9b084cd20cc13de4f41b171e3c37e33547f55f6d0b191b",
+      "preprocessing": {
+        "resize": false,
+        "crop": false,
+        "generated": false,
+        "mode": "RGB",
+        "jpeg_quality": 95
+      },
+      "intrinsics": {
+        "camera_model": "PINHOLE",
+        "matrix": [
+          [
+            5299.313,
+            0.0,
+            1263.818
+          ],
+          [
+            0.0,
+            5299.313,
+            977.763
+          ],
+          [
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "fx_px": 5299.313,
+        "fy_px": 5299.313,
+        "cx_px": 1263.818,
+        "cy_px": 977.763,
+        "baseline_m": 0.177288,
+        "disparity_offset_px": 174.186,
+        "width": 2988,
+        "height": 2008,
+        "pixel_origin": "Rectified camera coordinates from Middlebury calib.txt"
+      },
+      "ground_truth": {
+        "depth_path": "ground-truth/Bicycle1-perfect_depth.npy",
+        "valid_mask_path": "ground-truth/Bicycle1-perfect_valid.npy",
+        "depth_convention": "z_depth",
+        "units": "meters",
+        "dtype": "float32",
+        "invalid_depth": "NaN",
+        "formula": "z_m = (baseline_mm / 1000) * fx_px / (disparity_px + doffs_px)",
+        "formula_source": "https://vision.middlebury.edu/stereo/data/scenes2014/",
+        "pfm_header_scale": -0.003922,
+        "pfm_scale_rule": "Absolute header scale ignored; values are disparity in pixels",
+        "pfm_format_source": "https://vision.middlebury.edu/stereo/submit3/upload-format.html",
+        "mask_rule": "finite disparity and disparity + doffs > 0 and disp0-n.pgm > 0",
+        "mask_semantics": "Valid structured-light reconstruction with at least one contributing sample",
+        "depth_sha256": "fbf7c46993c48bd8232acf280e835fed8c3798e6335a15e606ec948223fd1dcb",
+        "valid_mask_sha256": "f1d5783ae564e9592459bffc8b27e5c8345d2bc68ea5b1492974f9a6c090822e",
+        "source_files": {
+          "calib.txt": {
+            "path": "originals/Bicycle1-perfect/calib.txt",
+            "sha256": "d47198449a157672086cf8991eadeb41e365fe4c5fe27000e8a7b1b9caa27421",
+            "url": "https://vision.middlebury.edu/stereo/data/scenes2014/datasets/Bicycle1-perfect/calib.txt"
+          },
+          "im0.png": {
+            "path": "originals/Bicycle1-perfect/im0.png",
+            "sha256": "7eaf9f6a9d8c93d28f9b084cd20cc13de4f41b171e3c37e33547f55f6d0b191b",
+            "url": "https://vision.middlebury.edu/stereo/data/scenes2014/datasets/Bicycle1-perfect/im0.png"
+          },
+          "disp0.pfm": {
+            "path": "originals/Bicycle1-perfect/disp0.pfm",
+            "sha256": "1e3fb1029de218f70ba8bec40dd33fe74d7c587042d6792a929635cdb5616612",
+            "url": "https://vision.middlebury.edu/stereo/data/scenes2014/datasets/Bicycle1-perfect/disp0.pfm"
+          },
+          "disp0-n.pgm": {
+            "path": "originals/Bicycle1-perfect/disp0-n.pgm",
+            "sha256": "4a20be5f3334f15bec2637c959f31c8b31fa2e833082e7a06b674b897cd2fdcf",
+            "url": "https://vision.middlebury.edu/stereo/data/scenes2014/datasets/Bicycle1-perfect/disp0-n.pgm"
+          }
+        },
+        "valid_pixels": 5856704,
+        "valid_fraction": 0.9761329514605567,
+        "min_depth_m": 2.9403438568115234,
+        "median_depth_m": 3.8020811080932617,
+        "max_depth_m": 4.0842108726501465,
+        "near_pixels_at_1_5_m": 0
+      }
+    }
+  ]
+}

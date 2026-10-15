@@ -1,0 +1,25 @@
+{
+  "simulated": true,
+  "note": "Distances fixes de scénario; aucune mesure réelle.",
+  "images": [
+    {
+      "filename": "near.jpg",
+      "scene": "near",
+      "expected_distances_m": [
+        0.45
+      ]
+    },
+    {
+      "filename": "far.jpg",
+      "scene": "far",
+      "expected_distances_m": [
+        3.5
+      ]
+    },
+    {
+      "filename": "clear.jpg",
+      "scene": "clear",
+      "expected_distances_m": []
+    }
+  ]
+}

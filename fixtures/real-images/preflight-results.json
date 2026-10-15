@@ -1,0 +1,249 @@
+{
+  "kind": "Local provider preflight only; root live HTTP/WebSocket test is separate",
+  "model_id": "depth-anything/Depth-Anything-V2-Metric-Indoor-Small-hf",
+  "device": "cpu",
+  "torch_version": "2.14.1",
+  "transformers_version": "4.57.6",
+  "near_threshold_m": 1.5,
+  "far_threshold_m": 3.0,
+  "confidence_threshold": 0.5,
+  "physical_accuracy_validated": false,
+  "selection_note": "Before model inference: visually inspect all 20 official Depth Anything examples, retain the four indoor photographs demo10, demo13, demo14, demo15; reject illustrations, paintings, artistic composites and outdoor scenes. Add the real COCO cats-on-sofa image used by the official metric model card. All five selected photos and every prediction are retained; no outcome-based removal, no crop, no synthetic images. Reviewed originals, contact sheet and reviewed-candidates.json retain the selection audit trail.",
+  "results": [
+    {
+      "filename": "room-table-chairs.jpg",
+      "sha256": "428dfec0525a2e8436856ff60e411dcb08c98c6e00003659bc382d83aa2ef1cd",
+      "provider": "depth_anything_metric",
+      "simulated": false,
+      "detections": [
+        {
+          "label": "obstacle_left",
+          "confidence": 1.0,
+          "bbox": [
+            0.05,
+            0.2,
+            0.35,
+            0.8
+          ],
+          "distance_m": 3.154799222946167,
+          "distance_source": "metric_model"
+        },
+        {
+          "label": "obstacle_center",
+          "confidence": 1.0,
+          "bbox": [
+            0.35,
+            0.2,
+            0.65,
+            0.8
+          ],
+          "distance_m": 1.9118059873580933,
+          "distance_source": "metric_model"
+        },
+        {
+          "label": "obstacle_right",
+          "confidence": 1.0,
+          "bbox": [
+            0.65,
+            0.2,
+            0.95,
+            0.8
+          ],
+          "distance_m": 2.8262887001037598,
+          "distance_source": "metric_model"
+        }
+      ],
+      "nearest_distance_m": 1.9118059873580933,
+      "expected_proximity_alert_at_1_5m": false,
+      "inference_seconds": 0.5532
+    },
+    {
+      "filename": "museum-vessels.jpg",
+      "sha256": "dbf2f5026954bdf8a73ee162f16c4bb0059cd913493d9bd2a15b8baf74da6257",
+      "provider": "depth_anything_metric",
+      "simulated": false,
+      "detections": [
+        {
+          "label": "obstacle_left",
+          "confidence": 1.0,
+          "bbox": [
+            0.05,
+            0.2,
+            0.35,
+            0.8
+          ],
+          "distance_m": 2.0532736778259277,
+          "distance_source": "metric_model"
+        },
+        {
+          "label": "obstacle_center",
+          "confidence": 1.0,
+          "bbox": [
+            0.35,
+            0.2,
+            0.65,
+            0.8
+          ],
+          "distance_m": 2.4316506385803223,
+          "distance_source": "metric_model"
+        },
+        {
+          "label": "obstacle_right",
+          "confidence": 1.0,
+          "bbox": [
+            0.65,
+            0.2,
+            0.95,
+            0.8
+          ],
+          "distance_m": 2.081129312515259,
+          "distance_source": "metric_model"
+        }
+      ],
+      "nearest_distance_m": 2.0532736778259277,
+      "expected_proximity_alert_at_1_5m": false,
+      "inference_seconds": 0.3363
+    },
+    {
+      "filename": "glassware.jpg",
+      "sha256": "90ae07f37c1ef45f9b0b6a166521dc0d22cce9f6061f778188da920b59fbf2a2",
+      "provider": "depth_anything_metric",
+      "simulated": false,
+      "detections": [
+        {
+          "label": "obstacle_left",
+          "confidence": 1.0,
+          "bbox": [
+            0.05,
+            0.2,
+            0.35,
+            0.8
+          ],
+          "distance_m": 0.7658863663673401,
+          "distance_source": "metric_model"
+        },
+        {
+          "label": "obstacle_center",
+          "confidence": 1.0,
+          "bbox": [
+            0.35,
+            0.2,
+            0.65,
+            0.8
+          ],
+          "distance_m": 0.7592942118644714,
+          "distance_source": "metric_model"
+        },
+        {
+          "label": "obstacle_right",
+          "confidence": 1.0,
+          "bbox": [
+            0.65,
+            0.2,
+            0.95,
+            0.8
+          ],
+          "distance_m": 0.6364787220954895,
+          "distance_source": "metric_model"
+        }
+      ],
+      "nearest_distance_m": 0.6364787220954895,
+      "expected_proximity_alert_at_1_5m": true,
+      "inference_seconds": 0.3548
+    },
+    {
+      "filename": "staircase-hall.jpg",
+      "sha256": "903be68df370fa1ee6921cd1f2c8bf8032aeb0ebb93d7a7aff3eb1870de85db7",
+      "provider": "depth_anything_metric",
+      "simulated": false,
+      "detections": [
+        {
+          "label": "obstacle_left",
+          "confidence": 1.0,
+          "bbox": [
+            0.05,
+            0.2,
+            0.35,
+            0.8
+          ],
+          "distance_m": 6.488264560699463,
+          "distance_source": "metric_model"
+        },
+        {
+          "label": "obstacle_center",
+          "confidence": 1.0,
+          "bbox": [
+            0.35,
+            0.2,
+            0.65,
+            0.8
+          ],
+          "distance_m": 6.232576847076416,
+          "distance_source": "metric_model"
+        },
+        {
+          "label": "obstacle_right",
+          "confidence": 1.0,
+          "bbox": [
+            0.65,
+            0.2,
+            0.95,
+            0.8
+          ],
+          "distance_m": 7.4418044090271,
+          "distance_source": "metric_model"
+        }
+      ],
+      "nearest_distance_m": 6.232576847076416,
+      "expected_proximity_alert_at_1_5m": false,
+      "inference_seconds": 0.3343
+    },
+    {
+      "filename": "coco-cats-sofa.jpg",
+      "sha256": "5d52723b565826fa17cc05a6e380241f4371263b847a9d5548f111ab65e00d4c",
+      "provider": "depth_anything_metric",
+      "simulated": false,
+      "detections": [
+        {
+          "label": "obstacle_left",
+          "confidence": 1.0,
+          "bbox": [
+            0.05,
+            0.2,
+            0.35,
+            0.8
+          ],
+          "distance_m": 1.421924352645874,
+          "distance_source": "metric_model"
+        },
+        {
+          "label": "obstacle_center",
+          "confidence": 1.0,
+          "bbox": [
+            0.35,
+            0.2,
+            0.65,
+            0.8
+          ],
+          "distance_m": 1.3652395009994507,
+          "distance_source": "metric_model"
+        },
+        {
+          "label": "obstacle_right",
+          "confidence": 1.0,
+          "bbox": [
+            0.65,
+            0.2,
+            0.95,
+            0.8
+          ],
+          "distance_m": 1.3626971244812012,
+          "distance_source": "metric_model"
+        }
+      ],
+      "nearest_distance_m": 1.3626971244812012,
+      "expected_proximity_alert_at_1_5m": true,
+      "inference_seconds": 0.2784
+    }
+  ]
+}

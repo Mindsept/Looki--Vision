@@ -1,0 +1,212 @@
+{
+  "schema_version": "1.0",
+  "retrieved_on": "2026-10-15",
+  "selection_method": "Before model inference: visually inspect all 20 official Depth Anything examples, retain the four indoor photographs demo10, demo13, demo14, demo15; reject illustrations, paintings, artistic composites and outdoor scenes. Add the real COCO cats-on-sofa image used by the official metric model card. All five selected photos and every prediction are retained; no outcome-based removal, no crop, no synthetic images. Reviewed originals, contact sheet and reviewed-candidates.json retain the selection audit trail.",
+  "source_attempts": "Six CC-licensed Commons sources were researched first, but downloads returned HTTP429 even after Retry-After; no Commons photo was evaluated. Their API metadata is retained in source-metadata.json. Direct COCO HTTPS failed certificate verification; the official Hugging Face mirror succeeded without disabling TLS verification.",
+  "near_threshold_m": 1.5,
+  "far_threshold_m": 3.0,
+  "ground_truth_available": false,
+  "measurement_note": "Distances are model estimates, not verified physical distances. Indoor photographs have no depth ground truth, camera calibration or capture-scale reference. Positive/negative classifications test application behavior only. Reflections and glassware are challenging scenes.",
+  "images": [
+    {
+      "filename": "room-table-chairs.jpg",
+      "label": "Pièce avec table et chaises",
+      "description": "Pièce avec table et chaises",
+      "source_url": "https://github.com/DepthAnything/Depth-Anything-V2/blob/main/assets/examples/demo10.jpg",
+      "download_url": "https://raw.githubusercontent.com/DepthAnything/Depth-Anything-V2/main/assets/examples/demo10.jpg",
+      "source_context": "Photographic example in the official Depth Anything V2 repository; selected visually as an indoor photograph before inference.",
+      "upstream_image_url": null,
+      "author": null,
+      "credit": "DepthAnything / Depth-Anything-V2 official example demo10.jpg; original photographer not identified",
+      "license": null,
+      "license_url": null,
+      "license_note": "Image-specific license and original photographer not stated in the example directory. The repository Apache-2.0 software license is not asserted to establish rights for each third-party photograph.",
+      "original_path": "originals/reviewed/demo10.jpg",
+      "original_dimensions": {
+        "width": 2048,
+        "height": 1332
+      },
+      "dimensions": {
+        "width": 1280,
+        "height": 833
+      },
+      "preprocessing": {
+        "exif_orientation_original": 1,
+        "exif_orientation_applied": true,
+        "color_mode": "RGB",
+        "resize": "Whole image, aspect ratio preserved, longest edge <=1280 pixels; no upscaling",
+        "resampling": "LANCZOS",
+        "crop": false,
+        "generated": false,
+        "jpeg_quality": 95,
+        "jpeg_subsampling": 0
+      },
+      "sha256": "428dfec0525a2e8436856ff60e411dcb08c98c6e00003659bc382d83aa2ef1cd",
+      "original_sha256": "bc77f215081f58de8d079e821e2808f6ee2727dfa729c10a5921c186a32c7638",
+      "ground_truth_distance_m": null,
+      "evaluated": true,
+      "preflight_nearest_distance_m": 1.9118059873580933,
+      "preflight_expected_alert": false
+    },
+    {
+      "filename": "museum-vessels.jpg",
+      "label": "Vitrine de récipients et vaisselle",
+      "description": "Vitrine de récipients et vaisselle",
+      "source_url": "https://github.com/DepthAnything/Depth-Anything-V2/blob/main/assets/examples/demo13.jpg",
+      "download_url": "https://raw.githubusercontent.com/DepthAnything/Depth-Anything-V2/main/assets/examples/demo13.jpg",
+      "source_context": "Photographic example in the official Depth Anything V2 repository; selected visually as an indoor photograph before inference.",
+      "upstream_image_url": null,
+      "author": null,
+      "credit": "DepthAnything / Depth-Anything-V2 official example demo13.jpg; original photographer not identified",
+      "license": null,
+      "license_url": null,
+      "license_note": "Image-specific license and original photographer not stated in the example directory. The repository Apache-2.0 software license is not asserted to establish rights for each third-party photograph.",
+      "original_path": "originals/reviewed/demo13.jpg",
+      "original_dimensions": {
+        "width": 2048,
+        "height": 1332
+      },
+      "dimensions": {
+        "width": 1280,
+        "height": 833
+      },
+      "preprocessing": {
+        "exif_orientation_original": 1,
+        "exif_orientation_applied": true,
+        "color_mode": "RGB",
+        "resize": "Whole image, aspect ratio preserved, longest edge <=1280 pixels; no upscaling",
+        "resampling": "LANCZOS",
+        "crop": false,
+        "generated": false,
+        "jpeg_quality": 95,
+        "jpeg_subsampling": 0
+      },
+      "sha256": "dbf2f5026954bdf8a73ee162f16c4bb0059cd913493d9bd2a15b8baf74da6257",
+      "original_sha256": "9168fc752a002d50138a56621e8de5fab7fed125a978dd293319d28d30993564",
+      "ground_truth_distance_m": null,
+      "evaluated": true,
+      "preflight_nearest_distance_m": 2.0532736778259277,
+      "preflight_expected_alert": false
+    },
+    {
+      "filename": "glassware.jpg",
+      "label": "Verres et verrerie en vitrine",
+      "description": "Verres et verrerie en vitrine",
+      "source_url": "https://github.com/DepthAnything/Depth-Anything-V2/blob/main/assets/examples/demo14.jpg",
+      "download_url": "https://raw.githubusercontent.com/DepthAnything/Depth-Anything-V2/main/assets/examples/demo14.jpg",
+      "source_context": "Photographic example in the official Depth Anything V2 repository; selected visually as an indoor photograph before inference.",
+      "upstream_image_url": null,
+      "author": null,
+      "credit": "DepthAnything / Depth-Anything-V2 official example demo14.jpg; original photographer not identified",
+      "license": null,
+      "license_url": null,
+      "license_note": "Image-specific license and original photographer not stated in the example directory. The repository Apache-2.0 software license is not asserted to establish rights for each third-party photograph.",
+      "original_path": "originals/reviewed/demo14.jpg",
+      "original_dimensions": {
+        "width": 2048,
+        "height": 1332
+      },
+      "dimensions": {
+        "width": 1280,
+        "height": 833
+      },
+      "preprocessing": {
+        "exif_orientation_original": 1,
+        "exif_orientation_applied": true,
+        "color_mode": "RGB",
+        "resize": "Whole image, aspect ratio preserved, longest edge <=1280 pixels; no upscaling",
+        "resampling": "LANCZOS",
+        "crop": false,
+        "generated": false,
+        "jpeg_quality": 95,
+        "jpeg_subsampling": 0
+      },
+      "sha256": "90ae07f37c1ef45f9b0b6a166521dc0d22cce9f6061f778188da920b59fbf2a2",
+      "original_sha256": "01480d952bc950332f0eea31da0777f66d5f285d8edfe2a5f47508f4b260a99f",
+      "ground_truth_distance_m": null,
+      "evaluated": true,
+      "preflight_nearest_distance_m": 0.6364787220954895,
+      "preflight_expected_alert": true
+    },
+    {
+      "filename": "staircase-hall.jpg",
+      "label": "Grand hall intérieur avec escalier",
+      "description": "Grand hall intérieur avec escalier",
+      "source_url": "https://github.com/DepthAnything/Depth-Anything-V2/blob/main/assets/examples/demo15.jpg",
+      "download_url": "https://raw.githubusercontent.com/DepthAnything/Depth-Anything-V2/main/assets/examples/demo15.jpg",
+      "source_context": "Photographic example in the official Depth Anything V2 repository; selected visually as an indoor photograph before inference.",
+      "upstream_image_url": null,
+      "author": null,
+      "credit": "DepthAnything / Depth-Anything-V2 official example demo15.jpg; original photographer not identified",
+      "license": null,
+      "license_url": null,
+      "license_note": "Image-specific license and original photographer not stated in the example directory. The repository Apache-2.0 software license is not asserted to establish rights for each third-party photograph.",
+      "original_path": "originals/reviewed/demo15.jpg",
+      "original_dimensions": {
+        "width": 2048,
+        "height": 1362
+      },
+      "dimensions": {
+        "width": 1280,
+        "height": 851
+      },
+      "preprocessing": {
+        "exif_orientation_original": 1,
+        "exif_orientation_applied": true,
+        "color_mode": "RGB",
+        "resize": "Whole image, aspect ratio preserved, longest edge <=1280 pixels; no upscaling",
+        "resampling": "LANCZOS",
+        "crop": false,
+        "generated": false,
+        "jpeg_quality": 95,
+        "jpeg_subsampling": 0
+      },
+      "sha256": "903be68df370fa1ee6921cd1f2c8bf8032aeb0ebb93d7a7aff3eb1870de85db7",
+      "original_sha256": "bf60ce3879f627e8886280cc61442174c91908894a5b059681341fed600f7db3",
+      "ground_truth_distance_m": null,
+      "evaluated": true,
+      "preflight_nearest_distance_m": 6.232576847076416,
+      "preflight_expected_alert": false
+    },
+    {
+      "filename": "coco-cats-sofa.jpg",
+      "label": "Deux chats sur un canapé",
+      "description": "Deux chats sur un canapé",
+      "source_url": "https://huggingface.co/datasets/huggingface/documentation-images/blob/main/coco_sample.png",
+      "download_url": "https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/coco_sample.png",
+      "source_context": "COCO photograph used in official Hugging Face Depth Anything metric model example; downloaded from official Hugging Face documentation image mirror.",
+      "upstream_image_url": "http://images.cocodataset.org/val2017/000000039769.jpg",
+      "author": null,
+      "credit": "COCO image 39769, mirrored by Hugging Face documentation",
+      "license": null,
+      "license_url": "https://cocodataset.org/#termsofuse",
+      "license_note": "Image-specific license and original photographer not verified. COCO annotation license is not asserted to cover this photograph.",
+      "original_path": "originals/coco-cats-sofa.png",
+      "original_dimensions": {
+        "width": 640,
+        "height": 480
+      },
+      "dimensions": {
+        "width": 640,
+        "height": 480
+      },
+      "preprocessing": {
+        "exif_orientation_original": 1,
+        "exif_orientation_applied": true,
+        "color_mode": "RGB",
+        "resize": "Whole image, aspect ratio preserved, longest edge <=1280 pixels; no upscaling",
+        "resampling": "LANCZOS",
+        "crop": false,
+        "generated": false,
+        "jpeg_quality": 95,
+        "jpeg_subsampling": 0
+      },
+      "sha256": "5d52723b565826fa17cc05a6e380241f4371263b847a9d5548f111ab65e00d4c",
+      "original_sha256": "cf6f3c4befa148732c7453e0de5afab00f682427435fead2d88b07a9615cdac2",
+      "ground_truth_distance_m": null,
+      "evaluated": true,
+      "preflight_nearest_distance_m": 1.3626971244812012,
+      "preflight_expected_alert": true
+    }
+  ]
+}

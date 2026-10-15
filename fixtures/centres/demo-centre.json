@@ -1,0 +1,22 @@
+{
+  "schema_version": "1.0",
+  "center_id": "demo-centre",
+  "name": "Centre de démonstration LOOKi",
+  "updated_at": "2026-10-14T10:00:00Z",
+  "places": [
+    {"id": "entrance", "name": "Entrée", "description": "Entrée principale du centre"},
+    {"id": "reception", "name": "Accueil", "description": "Comptoir d'accueil"},
+    {"id": "corridor", "name": "Couloir", "description": "Couloir central"}
+  ],
+  "graph": {
+    "nodes": [
+      {"id": "entrance", "place_id": "entrance"},
+      {"id": "reception", "place_id": "reception"},
+      {"id": "corridor", "place_id": "corridor"}
+    ],
+    "edges": [
+      {"from": "entrance", "to": "reception", "distance_m": 4.0, "accessible": true},
+      {"from": "reception", "to": "corridor", "distance_m": 6.0, "accessible": true}
+    ]
+  }
+}

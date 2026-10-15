@@ -1,0 +1,283 @@
+{
+  "schema_version": "1.0",
+  "retrieved_on": "2026-10-15",
+  "selected_at": "2026-10-15T14:48:11.335209+00:00",
+  "selection_method": "All six photos visually inspected before model predictions: one street scene with traffic and pedestrians, one near bus and pedestrians, close parked bicycles, backlit people with bicycles, pedestrian bridge, and pedestrian signal. No image chosen or removed based on prediction. All selected photos must be retained in the evaluation, including missing or incorrect detections. No synthetic image and no crop.",
+  "near_threshold_m": 1.5,
+  "far_threshold_m": 3.0,
+  "ground_truth_available": false,
+  "measurement_note": "Distances are model estimates only; there is no physical ground truth, camera calibration or verified capture scale. Manual visible_elements are qualitative visual notes, not an exhaustive object annotation or a required model output.",
+  "images": [
+    {
+      "filename": "bus-pedestrians.jpg",
+      "label": "Piétons sur le trottoir devant un bus",
+      "source_url": "https://github.com/ultralytics/assets/blob/main/im/bus.jpg",
+      "download_url": "https://raw.githubusercontent.com/ultralytics/assets/main/im/bus.jpg",
+      "credit": "Ultralytics assets — bus.jpg; original photographer not verified",
+      "license": null,
+      "author": null,
+      "license_url": null,
+      "license_note": "No image-specific license or original photographer verified. Repository software licensing is not assumed to establish rights to this photograph.",
+      "visible_elements": [
+        "pedestrians",
+        "bus",
+        "bollards",
+        "pavement"
+      ],
+      "viewpoint_note": "Street-level view from a sidewalk; near people and bus, bollards visible.",
+      "description": "Piétons sur le trottoir devant un bus",
+      "source_context": "Photograph visually reviewed and selected before any model inference for this urban test.",
+      "original_path": "originals/bus.jpg",
+      "original_dimensions": {
+        "width": 810,
+        "height": 1080
+      },
+      "dimensions": {
+        "width": 810,
+        "height": 1080
+      },
+      "preprocessing": {
+        "exif_orientation_original": 1,
+        "exif_orientation_applied": true,
+        "color_mode": "RGB",
+        "resize": "Whole image, aspect ratio preserved, longest edge <=1280 pixels; no upscaling",
+        "resampling": "LANCZOS",
+        "crop": false,
+        "generated": false,
+        "jpeg_quality": 95,
+        "jpeg_subsampling": 0
+      },
+      "sha256": "74526435ef0fbb4c721d96e98966be95f038d3c7bb28cc1489e568a7d02baaf4",
+      "original_sha256": "c02019c4979c191eb739ddd944445ef408dad5679acab6fd520ef9d434bfbc63",
+      "ground_truth_distance_m": null,
+      "selected_for_inference": true,
+      "evaluated": false
+    },
+    {
+      "filename": "street-traffic.jpg",
+      "label": "Rue avec piétons, voitures, bus et feux",
+      "visible_elements": [
+        "pedestrians",
+        "cars",
+        "bus",
+        "motorcycles",
+        "bicycles",
+        "traffic lights",
+        "signs"
+      ],
+      "viewpoint_note": "Wide street-level scene, road and adjacent sidewalks; distant lights and nearby vehicle.",
+      "source_url": "https://github.com/DepthAnything/Depth-Anything-V2/blob/main/assets/examples/demo01.jpg",
+      "download_url": "https://raw.githubusercontent.com/DepthAnything/Depth-Anything-V2/main/assets/examples/demo01.jpg",
+      "credit": "DepthAnything / Depth-Anything-V2 official example demo01.jpg; original photographer not identified",
+      "author": null,
+      "license": null,
+      "license_url": null,
+      "license_note": "Image-specific license and original photographer not stated in the example directory. Repository software license is not asserted to establish rights for individual photographs.",
+      "description": "Rue avec piétons, voitures, bus et feux",
+      "source_context": "Photograph visually reviewed and selected before any model inference for this urban test.",
+      "original_path": "originals/demo01.jpg",
+      "original_dimensions": {
+        "width": 2048,
+        "height": 1362
+      },
+      "dimensions": {
+        "width": 1280,
+        "height": 851
+      },
+      "preprocessing": {
+        "exif_orientation_original": 1,
+        "exif_orientation_applied": true,
+        "color_mode": "RGB",
+        "resize": "Whole image, aspect ratio preserved, longest edge <=1280 pixels; no upscaling",
+        "resampling": "LANCZOS",
+        "crop": false,
+        "generated": false,
+        "jpeg_quality": 95,
+        "jpeg_subsampling": 0
+      },
+      "sha256": "4e5d062692e1641927e93005939afeadf1976ba11ae94ece460b316ef7b005c1",
+      "original_sha256": "35ef1bbb63f6540e49aa9b6302b9b938be4fe8b9c08c07c3694b02396b0e87e0",
+      "ground_truth_distance_m": null,
+      "selected_for_inference": true,
+      "evaluated": false
+    },
+    {
+      "filename": "parked-bicycles.jpg",
+      "label": "Vélos stationnés vus de près",
+      "visible_elements": [
+        "bicycles",
+        "ground",
+        "leaves"
+      ],
+      "viewpoint_note": "Close low-angle photograph of bicycle frames and wheels; not an egocentric calibrated view.",
+      "source_url": "https://github.com/DepthAnything/Depth-Anything-V2/blob/main/assets/examples/demo08.jpg",
+      "download_url": "https://raw.githubusercontent.com/DepthAnything/Depth-Anything-V2/main/assets/examples/demo08.jpg",
+      "credit": "DepthAnything / Depth-Anything-V2 official example demo08.jpg; original photographer not identified",
+      "author": null,
+      "license": null,
+      "license_url": null,
+      "license_note": "Image-specific license and original photographer not stated in the example directory. Repository software license is not asserted to establish rights for individual photographs.",
+      "description": "Vélos stationnés vus de près",
+      "source_context": "Photograph visually reviewed and selected before any model inference for this urban test.",
+      "original_path": "originals/demo08.jpg",
+      "original_dimensions": {
+        "width": 640,
+        "height": 425
+      },
+      "dimensions": {
+        "width": 640,
+        "height": 425
+      },
+      "preprocessing": {
+        "exif_orientation_original": 1,
+        "exif_orientation_applied": true,
+        "color_mode": "RGB",
+        "resize": "Whole image, aspect ratio preserved, longest edge <=1280 pixels; no upscaling",
+        "resampling": "LANCZOS",
+        "crop": false,
+        "generated": false,
+        "jpeg_quality": 95,
+        "jpeg_subsampling": 0
+      },
+      "sha256": "c341c05007d8110f8bc7d4a54ec37dd9e30440eecbdc3f37a0328f0bcd907e35",
+      "original_sha256": "d32b480349013be5f84521b0df1d6590139163aef8457f051076ed03c7371e6f",
+      "ground_truth_distance_m": null,
+      "selected_for_inference": true,
+      "evaluated": false
+    },
+    {
+      "filename": "people-bicycles-backlight.jpg",
+      "label": "Personnes et vélos en contre-jour",
+      "visible_elements": [
+        "people",
+        "bicycles",
+        "cars",
+        "pavement"
+      ],
+      "viewpoint_note": "Street-level sidewalk scene with strong backlight and overlapping people and bicycles.",
+      "source_url": "https://github.com/DepthAnything/Depth-Anything-V2/blob/main/assets/examples/demo16.jpg",
+      "download_url": "https://raw.githubusercontent.com/DepthAnything/Depth-Anything-V2/main/assets/examples/demo16.jpg",
+      "credit": "DepthAnything / Depth-Anything-V2 official example demo16.jpg; original photographer not identified",
+      "author": null,
+      "license": null,
+      "license_url": null,
+      "license_note": "Image-specific license and original photographer not stated in the example directory. Repository software license is not asserted to establish rights for individual photographs.",
+      "description": "Personnes et vélos en contre-jour",
+      "source_context": "Photograph visually reviewed and selected before any model inference for this urban test.",
+      "original_path": "originals/demo16.jpg",
+      "original_dimensions": {
+        "width": 2048,
+        "height": 1332
+      },
+      "dimensions": {
+        "width": 1280,
+        "height": 833
+      },
+      "preprocessing": {
+        "exif_orientation_original": 1,
+        "exif_orientation_applied": true,
+        "color_mode": "RGB",
+        "resize": "Whole image, aspect ratio preserved, longest edge <=1280 pixels; no upscaling",
+        "resampling": "LANCZOS",
+        "crop": false,
+        "generated": false,
+        "jpeg_quality": 95,
+        "jpeg_subsampling": 0
+      },
+      "sha256": "d44092b542a1abc6a67d59247fa12d4d52d94e52a9093353ea0d5ed6b1c1622a",
+      "original_sha256": "a92e51732b38ad8b21b5cbbc6883374bd5ab56bb4907d6c4f1e13307970480ee",
+      "ground_truth_distance_m": null,
+      "selected_for_inference": true,
+      "evaluated": false
+    },
+    {
+      "filename": "pedestrian-bridge.jpg",
+      "label": "Passerelle avec piéton et structures métalliques",
+      "visible_elements": [
+        "pedestrian",
+        "bridge structure",
+        "railings",
+        "walkway"
+      ],
+      "viewpoint_note": "Pedestrian walkway; monochrome photograph, railings and structure may not belong to detector classes.",
+      "source_url": "https://github.com/DepthAnything/Depth-Anything-V2/blob/main/assets/examples/demo06.jpg",
+      "download_url": "https://raw.githubusercontent.com/DepthAnything/Depth-Anything-V2/main/assets/examples/demo06.jpg",
+      "credit": "DepthAnything / Depth-Anything-V2 official example demo06.jpg; original photographer not identified",
+      "author": null,
+      "license": null,
+      "license_url": null,
+      "license_note": "Image-specific license and original photographer not stated in the example directory. Repository software license is not asserted to establish rights for individual photographs.",
+      "description": "Passerelle avec piéton et structures métalliques",
+      "source_context": "Photograph visually reviewed and selected before any model inference for this urban test.",
+      "original_path": "originals/demo06.jpg",
+      "original_dimensions": {
+        "width": 2048,
+        "height": 1362
+      },
+      "dimensions": {
+        "width": 1280,
+        "height": 851
+      },
+      "preprocessing": {
+        "exif_orientation_original": 1,
+        "exif_orientation_applied": true,
+        "color_mode": "RGB",
+        "resize": "Whole image, aspect ratio preserved, longest edge <=1280 pixels; no upscaling",
+        "resampling": "LANCZOS",
+        "crop": false,
+        "generated": false,
+        "jpeg_quality": 95,
+        "jpeg_subsampling": 0
+      },
+      "sha256": "dec1157fae92a7be827a66432afac59651977ed710323e65466924a873412714",
+      "original_sha256": "0fd815bddeab139e7477c948a22fffdf84d9b87f81d77dcf6fd8ef39ebaaafb5",
+      "ground_truth_distance_m": null,
+      "selected_for_inference": true,
+      "evaluated": false
+    },
+    {
+      "filename": "pedestrian-signal.jpg",
+      "label": "Signal piéton lumineux à New York",
+      "source_url": "https://commons.wikimedia.org/wiki/File:Pedestrian_LED_Traffic_Light_NYC.jpg",
+      "download_url": "https://upload.wikimedia.org/wikipedia/commons/3/35/Pedestrian_LED_Traffic_Light_NYC.jpg",
+      "credit": "Freier Denker — Pedestrian LED Traffic Light NYC, Wikimedia Commons",
+      "license": "CC0-1.0",
+      "author": "Freier Denker",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "license_note": "CC0 1.0 explicitly stated on the photograph file page, inspected on 2026-10-15.",
+      "visible_elements": [
+        "pedestrian signal",
+        "pole",
+        "background buildings"
+      ],
+      "viewpoint_note": "Telephoto close-up of pedestrian signal, source EXIF equivalent focal length486mm; not a calibrated glasses viewpoint.",
+      "description": "Signal piéton lumineux à New York",
+      "source_context": "Photograph visually reviewed and selected before any model inference for this urban test.",
+      "original_path": "originals/pedestrian-signal-nyc.jpg",
+      "original_dimensions": {
+        "width": 2736,
+        "height": 3648
+      },
+      "dimensions": {
+        "width": 960,
+        "height": 1280
+      },
+      "preprocessing": {
+        "exif_orientation_original": 1,
+        "exif_orientation_applied": true,
+        "color_mode": "RGB",
+        "resize": "Whole image, aspect ratio preserved, longest edge <=1280 pixels; no upscaling",
+        "resampling": "LANCZOS",
+        "crop": false,
+        "generated": false,
+        "jpeg_quality": 95,
+        "jpeg_subsampling": 0
+      },
+      "sha256": "e23e7288d8afdcfcf5b4ad59d5d327f8010ea695f02f36862e71a03ff65e51e2",
+      "original_sha256": "12dfcd20bf01ce07ec9d45b43c1929ceab5859550a276e726b7547239540dea2",
+      "ground_truth_distance_m": null,
+      "selected_for_inference": true,
+      "evaluated": false
+    }
+  ]
+}
