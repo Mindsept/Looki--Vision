@@ -1,0 +1,61 @@
+name: looki
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-looki}
+      POSTGRES_USER: ${POSTGRES_USER:-looki}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-looki-local-password}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+  backend:
+    build:
+      context: .
+      args:
+        INSTALL_VISION: ${INSTALL_VISION:-false}
+    environment:
+      LOOKI_DB_HOST: db
+      LOOKI_DB_NAME: ${POSTGRES_DB:-looki}
+      LOOKI_DB_USER: ${POSTGRES_USER:-looki}
+      LOOKI_DB_PASSWORD: ${POSTGRES_PASSWORD:-looki-local-password}
+      LOOKI_API_KEY: ${LOOKI_API_KEY:-looki-local-dev-key}
+      LOOKI_VISION_PROVIDER: ${LOOKI_VISION_PROVIDER:-mock}
+      LOOKI_DEPTH_MODEL_ID: ${LOOKI_DEPTH_MODEL_ID:-}
+      LOOKI_DEPTH_BACKEND: ${LOOKI_DEPTH_BACKEND:-depth_anything}
+      LOOKI_CAMERA_CALIBRATION_PATH: ${LOOKI_CAMERA_CALIBRATION_PATH:-}
+      LOOKI_OBJECT_MODEL_ID: ${LOOKI_OBJECT_MODEL_ID:-PekingU/rtdetr_r18vd}
+      LOOKI_OBJECT_CONFIDENCE_THRESHOLD: ${LOOKI_OBJECT_CONFIDENCE_THRESHOLD:-0.5}
+      LOOKI_VISION_DEVICE: ${LOOKI_VISION_DEVICE:-cpu}
+      LOOKI_NEAR_THRESHOLD_M: ${LOOKI_NEAR_THRESHOLD_M:-1.5}
+      LOOKI_FAR_THRESHOLD_M: ${LOOKI_FAR_THRESHOLD_M:-3.0}
+      LOOKI_MIN_CONFIDENCE: ${LOOKI_MIN_CONFIDENCE:-0.5}
+      LOOKI_MAX_PENDING_FRAMES: ${LOOKI_MAX_PENDING_FRAMES:-32}
+      LOOKI_MAX_FRAME_AGE_SECONDS: ${LOOKI_MAX_FRAME_AGE_SECONDS:-30}
+      LOOKI_CENTRES_PROVIDER: ${LOOKI_CENTRES_PROVIDER:-mock}
+      LOOKI_CENTRES_BASE_URL: ${LOOKI_CENTRES_BASE_URL:-}
+      LOOKI_CENTRES_API_KEY: ${LOOKI_CENTRES_API_KEY:-}
+    ports:
+      - "127.0.0.1:${BACKEND_PORT:-8000}:8000"
+    volumes:
+      - model_cache:/home/looki/.cache/huggingface
+      - ./calibration:/app/calibration:ro
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health/ready', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      start_period: 90s
+      retries: 5
+    restart: unless-stopped
+    stop_grace_period: 30s
+volumes:
+  postgres_data:
+  model_cache:

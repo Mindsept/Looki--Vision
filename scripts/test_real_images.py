@@ -83,7 +83,7 @@ def ws_url(base_url: str, session_id: str) -> str:
 def config_hints() -> dict:
     """Read only non-secret local hints; these do not prove remote server settings."""
     hints = {}
-    env_file = BACKEND_DIR.parent / ".env"
+    env_file = BACKEND_DIR / ".env"
     if env_file.is_file():
         for line in env_file.read_text().splitlines():
             key, separator, value = line.partition("=")
@@ -920,7 +920,7 @@ def main() -> None:
     args.images_dir = args.images_dir or BACKEND_DIR / "fixtures" / (
         "urban-images" if urban else "real-images"
     )
-    args.output_dir = args.output_dir or BACKEND_DIR.parent / "output" / (
+    args.output_dir = args.output_dir or BACKEND_DIR / "output" / (
         "urban-depth-evaluation" if urban else "real-depth-evaluation"
     )
     report = asyncio.run(run(args))

@@ -1,0 +1,139 @@
+{
+  "$defs": {
+    "Edge": {
+      "properties": {
+        "from": {
+          "title": "From",
+          "type": "string"
+        },
+        "to": {
+          "title": "To",
+          "type": "string"
+        },
+        "distance_m": {
+          "minimum": 0,
+          "title": "Distance M",
+          "type": "number"
+        },
+        "accessible": {
+          "default": true,
+          "title": "Accessible",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "from",
+        "to",
+        "distance_m"
+      ],
+      "title": "Edge",
+      "type": "object"
+    },
+    "Graph": {
+      "properties": {
+        "nodes": {
+          "items": {
+            "$ref": "#/$defs/Node"
+          },
+          "title": "Nodes",
+          "type": "array"
+        },
+        "edges": {
+          "items": {
+            "$ref": "#/$defs/Edge"
+          },
+          "title": "Edges",
+          "type": "array"
+        }
+      },
+      "required": [
+        "nodes",
+        "edges"
+      ],
+      "title": "Graph",
+      "type": "object"
+    },
+    "Node": {
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "place_id": {
+          "title": "Place Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "place_id"
+      ],
+      "title": "Node",
+      "type": "object"
+    },
+    "Place": {
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "description": {
+          "default": "",
+          "title": "Description",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "name"
+      ],
+      "title": "Place",
+      "type": "object"
+    }
+  },
+  "properties": {
+    "schema_version": {
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "center_id": {
+      "title": "Center Id",
+      "type": "string"
+    },
+    "name": {
+      "title": "Name",
+      "type": "string"
+    },
+    "updated_at": {
+      "title": "Updated At",
+      "type": "string"
+    },
+    "places": {
+      "items": {
+        "$ref": "#/$defs/Place"
+      },
+      "title": "Places",
+      "type": "array"
+    },
+    "graph": {
+      "$ref": "#/$defs/Graph"
+    }
+  },
+  "required": [
+    "schema_version",
+    "center_id",
+    "name",
+    "updated_at",
+    "places",
+    "graph"
+  ],
+  "title": "CenterContext",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:looki:contracts:center-context:1.0",
+  "$comment": "Le backend vérifie en plus schema_version=1.0, correspondance center_id demandé, unicité lieux/nœuds et références du graphe."
+}

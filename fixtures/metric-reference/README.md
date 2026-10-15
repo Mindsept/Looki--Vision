@@ -20,7 +20,7 @@ La conversion utilise `z_m = (baseline_mm / 1000) × fx_px / (disparity_px + dof
 Les sources sont les archives officielles [`two_view_training.7z`](https://www.eth3d.net/data/two_view_training.7z) et [`two_view_training_gt.7z`](https://www.eth3d.net/data/two_view_training_gt.7z), environ `29 Mo` au total. Pour reproduire depuis la racine, avec NumPy, Pillow et `bsdtar` ou `7z` :
 
 ```bash
-backend/.venv/bin/python backend/scripts/prepare_metric_reference.py \
+.venv/bin/python scripts/prepare_metric_reference.py \
   --cache-dir /tmp/looki-eth3d-reference
 ```
 

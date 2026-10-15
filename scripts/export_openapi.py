@@ -16,9 +16,7 @@ from app.main import create_app  # noqa: E402
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument(
-        "--output", type=Path, default=BACKEND_DIR.parent / "contracts" / "openapi.json"
-    )
+    parser.add_argument("--output", type=Path, default=BACKEND_DIR / "contracts" / "openapi.json")
     args = parser.parse_args()
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(

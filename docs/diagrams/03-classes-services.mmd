@@ -1,0 +1,76 @@
+%% LOOKi - diagramme détaillé dans ../01-architecture.md
+classDiagram
+    class Runtime {
+        +Settings settings
+        +Database db
+        +Lock write_lock
+        +ContextProvider centres
+        +VisionProvider vision
+        +SessionService sessions
+        +FrameService frames
+        +QuestionService questions
+        +AnalysisWorker worker
+    }
+    class SessionService {
+        +create(data)
+        +get(session_id)
+        +close(session_id)
+        +events(session_id, after, limit)
+    }
+    class FrameService {
+        +ingest(session_id, frame_id, timestamp, image)
+        +get(session_id, frame_id)
+    }
+    class QuestionService {
+        +answer(session_id, question)
+    }
+    class AnalysisWorker {
+        +recover()
+        +run()
+        +process(frame)
+        +fail(frame, code, text)
+    }
+    class ProximityService {
+        +classify(distance_m, confidence) str
+    }
+    class SessionRepository {
+        +get(session_id)
+        +create(center_id, user_id, context)
+    }
+    class FrameRepository {
+        +get(session_id, frame_id)
+        +create(fields)
+        +claim_next()
+        +reset_interrupted()
+        +latest_completed(session_id)
+        +detections(internal_id)
+    }
+    class EventRepository {
+        +add(session_id, type, payload)
+        +after(session_id, cursor, limit)
+        +for_request(session_id, request_id)
+    }
+    class ContextProvider {
+        +context(center_id)
+    }
+    class VisionProvider {
+        <<interface>>
+        +analyze(image) VisionResult
+    }
+    Runtime *-- SessionService
+    Runtime *-- FrameService
+    Runtime *-- QuestionService
+    Runtime *-- AnalysisWorker
+    Runtime *-- ContextProvider
+    Runtime --> VisionProvider
+    SessionService --> SessionRepository
+    SessionService --> EventRepository
+    SessionService --> ContextProvider
+    FrameService --> FrameRepository
+    FrameService --> SessionRepository
+    QuestionService --> FrameRepository
+    QuestionService --> EventRepository
+    AnalysisWorker --> FrameRepository
+    AnalysisWorker --> EventRepository
+    AnalysisWorker --> VisionProvider
+    AnalysisWorker *-- ProximityService

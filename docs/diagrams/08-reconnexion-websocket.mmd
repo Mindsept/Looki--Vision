@@ -1,0 +1,18 @@
+%% LOOKi - diagramme détaillé dans ../03-contrats-et-flux.md
+sequenceDiagram
+    participant Phone as iPhone
+    participant Socket as WebSocket
+    participant DB as Journal
+    Phone->>Socket: Connecter after=17
+    Socket-->>Phone: session.state avec id null
+    Socket->>DB: Lire id > 17 pour cette session
+    DB-->>Socket: 19, 22, 23
+    Socket-->>Phone: Événement 19
+    Phone->>Phone: Traiter puis mémoriser 19
+    Socket--xPhone: Événement 22, connexion interrompue
+    Phone->>Socket: Reconnecter after=19
+    Socket-->>Phone: session.state avec id null
+    Socket->>DB: Lire id > 19
+    DB-->>Socket: 22, 23
+    Socket-->>Phone: Événements 22 et 23
+    Phone->>Phone: Dédupliquer puis avancer le curseur

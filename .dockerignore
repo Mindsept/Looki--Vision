@@ -12,3 +12,10 @@ tests
 .coverage.*
 htmlcov
 *.log
+.git
+docs
+output
+fixtures/**/originals
+fixtures/**/ground-truth
+fixtures/**/*contact-sheet.jpg
+fixtures/real-images/preflight-results.json

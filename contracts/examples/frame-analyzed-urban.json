@@ -1,0 +1,66 @@
+{
+  "id": 23,
+  "type": "frame.analyzed",
+  "session_id": "0967debf-02e2-4387-9490-f83e2e2c82a6",
+  "timestamp": "2026-10-15T14:54:03.744083Z",
+  "payload": {
+    "frame_id": "9985ae80-16ad-4768-bd77-250e497338d8",
+    "provider": "urban_objects",
+    "simulated": false,
+    "captured_at": "2026-10-15T14:54:03.265667+00:00",
+    "text": "Objets détectés : bicycle.",
+    "detections": [
+      {
+        "label": "bicycle",
+        "confidence": 0.9424058794975281,
+        "bbox": [
+          0.14907286167144776,
+          0.0037316083908081055,
+          1.0,
+          0.9638157743566177
+        ],
+        "distance_m": 7.385860919952393,
+        "distance_source": "metric_model",
+        "proximity": "far",
+        "observation_type": "object",
+        "depth_valid_fraction": 1.0
+      }
+    ],
+    "latency_ms": 283.09954199994536,
+    "timing_ms": {
+      "depth_preprocess_ms": 7.149750000280619,
+      "depth_inference_ms": 120.88599999970029,
+      "depth_postprocess_ms": 0.018042000192508567,
+      "depth_total_ms": 128.05379200017342,
+      "detection_preprocess_ms": 2.6620830003594165,
+      "detection_inference_ms": 146.69899999989866,
+      "detection_postprocess_ms": 0.2744590001384495,
+      "detection_total_ms": 149.63554200039653,
+      "fusion_ms": 0.8686669998496654,
+      "total_vision_ms": 278.7561249997452
+    },
+    "metadata": {
+      "depth_model_id": "depth-anything/Depth-Anything-V2-Metric-Outdoor-Small-hf",
+      "depth_model_revision": "fd2c22027eaf20374204f14099b8341e1925ad39",
+      "depth_max_m": 80.0,
+      "object_model_id": "PekingU/rtdetr_r18vd",
+      "object_model_revision": "ac77a11ff0170a41b771c03264987f8ce2b0d753",
+      "device": "cpu",
+      "observation_type": "object",
+      "label_space": "COCO English; checkpoint spelling aliases normalized",
+      "object_confidence_threshold": 0.5,
+      "confidence_semantics": "object_detection_score",
+      "depth_valid_fraction_semantics": "valid_depth_pixel_fraction",
+      "depth_percentile": 20,
+      "central_bbox_ratio": 0.8,
+      "depth_min_valid_fraction": 0.5,
+      "depth_map_width": 518,
+      "depth_map_height": 350,
+      "depth_method": "Raw metric depth p20 in central 80% bbox; no object segmentation",
+      "timing_method": "perf_counter wall time; CUDA/MPS synchronized; model loading excluded",
+      "near_threshold_m": 1.5,
+      "far_threshold_m": 3.0,
+      "min_confidence": 0.5
+    }
+  }
+}

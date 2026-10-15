@@ -1,0 +1,56 @@
+%% LOOKi - diagramme détaillé dans ../02-base-de-donnees.md
+erDiagram
+    sessions ||--o{ frames : recoit
+    sessions ||--o{ events : journalise
+    frames ||--o{ detections : contient
+    frames o|--o{ events : origine
+    sessions {
+        uuid id PK
+        varchar center_id
+        varchar user_id "nullable"
+        varchar status "active ou closed"
+        json context
+        timestamptz created_at
+        timestamptz closed_at "nullable"
+    }
+    frames {
+        uuid id PK "interne au backend"
+        uuid session_id FK
+        uuid frame_id "fourni par le Pi"
+        timestamptz captured_at
+        timestamptz received_at
+        timestamptz processed_at "nullable"
+        varchar status
+        varchar sha256
+        bytea image
+        integer width
+        integer height
+        varchar provider "nullable"
+        boolean simulated "nullable"
+        varchar description "nullable"
+        varchar error_code "nullable"
+        float latency_ms "nullable"
+        json timing_ms "durées détaillées"
+        json vision_metadata "metadata dans API"
+    }
+    detections {
+        uuid id PK
+        uuid frame_id FK "references frames.id"
+        varchar label
+        float confidence
+        json bbox
+        float distance_m "nullable"
+        varchar distance_source
+        varchar proximity
+        varchar observation_type "region ou object"
+        float depth_valid_fraction "nullable"
+    }
+    events {
+        integer id PK "sequence globale"
+        uuid session_id FK
+        uuid frame_id FK "nullable, references frames.id"
+        varchar type
+        timestamptz timestamp
+        json payload
+        uuid request_id "nullable"
+    }

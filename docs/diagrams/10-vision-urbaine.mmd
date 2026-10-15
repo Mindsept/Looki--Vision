@@ -1,0 +1,9 @@
+%% LOOKi - diagramme détaillé dans ../04-vision-et-proximite.md
+flowchart LR
+    Image[Image entière] --> Depth[Moteur métrique choisi<br/>Depth Anything ou UniDepth]
+    Image --> Boxes[RT-DETR<br/>boîtes et classes]
+    Depth --> Fusion[Fusion dans les 80 % centraux<br/>de chaque boîte objet]
+    Boxes --> Fusion
+    Fusion --> P20[Percentile 20 des pixels valides<br/>couverture minimale 50 %]
+    P20 --> Objects[Objets avec distance estimée<br/>ou distance inconnue]
+    Objects --> Rules[Politique de proximité existante]

@@ -9,7 +9,7 @@ the manifest (absolute paths are also accepted).
 
 Usage from the repository root::
 
-    backend/.venv/bin/python backend/scripts/compare_metric_depth.py \\
+    .venv/bin/python scripts/compare_metric_depth.py \\
         --manifest output/metric-depth-comparison/inference-manifest.json
 
 Definitions follow the official Depth Anything V2 metric implementation:
@@ -33,7 +33,7 @@ from typing import Any
 
 import numpy as np
 
-DEFAULT_OUTPUT = Path(__file__).resolve().parents[2] / "output/metric-depth-comparison"
+DEFAULT_OUTPUT = Path(__file__).resolve().parents[1] / "output/metric-depth-comparison"
 DEFAULT_EVALUATION = {
     "min_depth_m": 0.1,
     "max_depth_m": 80.0,

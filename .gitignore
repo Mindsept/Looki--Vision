@@ -1,0 +1,71 @@
+# Environnement local et secrets
+.env
+.env.*
+!.env.example
+
+# Python : environnements, caches et fichiers compilés
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.hypothesis/
+.tox/
+.nox/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+
+# Dépendances et sorties de compilation
+node_modules/
+dist/
+build/
+.astro/
+.vite/
+.next/
+.nuxt/
+*.tsbuildinfo
+.eslintcache
+coverage/
+
+# Rapports et fichiers de travail locaux (conservés sur disque)
+/output/
+/tmp/
+*.log
+*.tmp
+*.swp
+
+# Poids de modèles et caches téléchargés
+.cache/
+*.safetensors
+*.ckpt
+*.pth
+*.pt
+*.onnx
+
+# Originaux téléchargés et cartes de référence régénérables.
+# Garder les JPEG de test, manifestes, README et scripts de préparation.
+/fixtures/**/originals/
+/fixtures/**/ground-truth/
+/fixtures/**/*contact-sheet.jpg
+/fixtures/real-images/preflight-results.json
+
+# Calibration propre à une caméra ; les exemples restent versionnables
+/calibration/*.json
+!/calibration/*.example.json
+
+# Bases de test locales
+*.sqlite
+*.sqlite3
+/*.db
+/*.db-*
+
+# Système et éditeurs
+.DS_Store
+._*
+Thumbs.db
+.idea/

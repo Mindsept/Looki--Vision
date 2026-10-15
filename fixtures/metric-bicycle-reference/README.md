@@ -11,7 +11,7 @@ La formule officielle est `z_m = (baseline_mm / 1000) × fx_px / (disparity_px +
 Pour reproduire depuis la racine :
 
 ```bash
-backend/.venv/bin/python backend/scripts/prepare_bicycle_reference.py \
+.venv/bin/python scripts/prepare_bicycle_reference.py \
   --cache-dir /tmp/looki-middlebury-bicycle
 ```
 

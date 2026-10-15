@@ -1,0 +1,39 @@
+%% Routes et règles : app/controllers/http.py et app/services/analysis.py
+sequenceDiagram
+    autonumber
+    participant Pi as Raspberry Pi
+    participant HTTP as Contrôleur HTTP
+    participant Service as FrameService
+    participant DB as PostgreSQL
+    participant Worker as AnalysisWorker
+    participant Vision as VisionProvider
+    participant WS as Contrôleur WebSocket
+    participant Phone as iPhone
+    Note over Pi,Phone: Session créée et WebSocket authentifié déjà ouvert
+    Pi->>HTTP: POST /api/v1/sessions/{session_id}/frames<br/>JPEG + frame_id + timestamp
+    HTTP->>Service: ingest(session_id, frame_id, timestamp, image)
+    Service->>Service: Valider JPEG, fraîcheur, session et capacité
+    Service->>DB: Insérer frame pending sous write_lock, COMMIT
+    Service-->>HTTP: FrameRead
+    HTTP-->>Pi: 202 Accepted
+    Note over Pi,DB: Réessai identique : 200, sans nouvelle analyse<br/>Identifiant réutilisé avec données différentes : 409
+    Worker->>DB: claim_next, statut processing, COMMIT
+    Worker->>Worker: Vérifier l'âge de la capture
+    Worker->>Vision: analyze(image) via asyncio.to_thread
+    Vision-->>Worker: VisionResult, objets, distances et durées
+    Worker->>Worker: Recontrôler fraîcheur et résultats<br/>ProximityService.classify pour chaque observation
+    alt Inférence invalide ou capture périmée
+        Worker->>DB: failed + analysis.failed, COMMIT
+    else Résultat exploitable
+        Worker->>DB: completed + detections + frame.analyzed
+        opt Au moins une détection near
+            Worker->>DB: alert.proximity avec toutes les détections proches
+        end
+        Worker->>DB: COMMIT commun sous write_lock
+    end
+    loop Lecture incrémentale, 0,2 s par défaut
+        WS->>DB: events.after(session_id, cursor)
+        DB-->>WS: Événements persistés, ordonnés par id
+        WS-->>Phone: frame.analyzed, alert.proximity ou analysis.failed
+    end
+    Phone->>Phone: Dédupliquer et conserver le curseur<br/>Contrôler fraîcheur avant TTS de l'alerte

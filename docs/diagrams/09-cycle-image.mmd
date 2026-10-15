@@ -1,0 +1,9 @@
+%% LOOKi - diagramme détaillé dans ../02-base-de-donnees.md
+stateDiagram-v2
+    [*] --> pending: Upload accepté
+    pending --> processing: Worker sélectionne l’image
+    processing --> completed: Résultat et événements validés
+    processing --> failed: Analyse impossible ou image devenue trop ancienne
+    processing --> pending: Redémarrage ou reprise après incident DB
+    completed --> [*]
+    failed --> [*]

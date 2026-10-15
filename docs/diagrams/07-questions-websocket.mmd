@@ -1,0 +1,31 @@
+%% Une seule connexion bidirectionnelle ; aucun POST pour les questions.
+sequenceDiagram
+    autonumber
+    participant User as Utilisateur
+    participant Phone as iPhone STT et TTS
+    participant WS as Contrôleur WebSocket
+    participant Questions as QuestionService
+    participant DB as PostgreSQL
+    User->>Phone: Question vocale
+    Phone->>Phone: STT local à l'application mobile
+    Phone->>WS: question : request_id UUID, text
+    WS->>Questions: answer(session_id, question)
+    Questions->>DB: Chercher events(session_id, request_id)
+    alt Même request_id et même texte normalisé
+        DB-->>Questions: Réponse durable existante
+        Questions-->>WS: Réponse existante, duplicate=true
+        Note over WS,DB: Réponse non encore livrée : journal ordonné<br/>Réponse déjà livrée : renvoi de l'ancien id
+    else Identifiant réutilisé avec un autre texte
+        Questions-->>WS: request_id_conflict
+        WS-->>Phone: error transitoire, id=null
+    else Nouvelle question et session active
+        Questions->>DB: Dernière frame completed par captured_at<br/>et contexte mémorisé dans sessions
+        Questions->>Questions: Réponse déterministe selon la fraîcheur<br/>Aucun LLM dans cette version
+        Questions->>DB: Persister answer avec request_id, COMMIT
+        Note over WS,DB: Publication par la boucle du journal WebSocket
+    end
+    opt Réponse existante ou nouvelle disponible
+        WS-->>Phone: answer durable
+        Phone->>Phone: Dédupliquer id, conserver max(curseur, id)
+        Phone-->>User: TTS vers les écouteurs
+    end

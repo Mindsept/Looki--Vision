@@ -1,0 +1,61 @@
+%% LOOKi - diagramme détaillé dans ../04-vision-et-proximite.md
+classDiagram
+    class VisionProvider {
+        <<interface>>
+        +analyze(image) VisionResult
+    }
+    class MockVisionProvider {
+        +analyze(image) VisionResult
+    }
+    class DepthAnythingMetricProvider {
+        +analyze(image) VisionResult
+        +predict_depth(image) DepthPrediction
+    }
+    class UrbanObjectsProvider {
+        +analyze(image) VisionResult
+    }
+    class UniDepthMetricProvider {
+        +predict_depth(image) DepthPrediction
+    }
+    class DepthPrediction {
+        +ndarray depth_m
+        +dict timing_ms
+        +dict metadata
+    }
+    class CameraCalibration {
+        +float fx
+        +float fy
+        +float cx
+        +float cy
+        +int width
+        +int height
+        +matrix_for_size(width, height) ndarray
+    }
+    class VisionResult {
+        +str provider
+        +list detections
+        +str description
+        +bool simulated
+        +dict timing_ms
+        +dict metadata
+    }
+    class DetectionResult {
+        +str label
+        +float confidence
+        +tuple bbox
+        +float distance_m
+        +str distance_source
+        +str observation_type
+        +float depth_valid_fraction
+    }
+    VisionProvider <|.. MockVisionProvider
+    VisionProvider <|.. DepthAnythingMetricProvider
+    VisionProvider <|.. UrbanObjectsProvider
+    UrbanObjectsProvider --> DepthAnythingMetricProvider
+    UrbanObjectsProvider --> UniDepthMetricProvider
+    UniDepthMetricProvider --> CameraCalibration
+    UniDepthMetricProvider --> DepthPrediction
+    DepthAnythingMetricProvider --> DepthPrediction
+    UrbanObjectsProvider --> DepthPrediction
+    VisionProvider --> VisionResult
+    VisionResult "1" *-- "0..*" DetectionResult

@@ -1,0 +1,14 @@
+%% LOOKi - diagramme détaillé dans ../01-architecture.md
+flowchart TD
+    HTTP[Contrôleurs HTTP et WebSocket] --> Schemas[Schémas Pydantic<br/>validation et sérialisation]
+    HTTP --> Services[Services<br/>cas d’usage]
+    Worker[Worker<br/>ordonnancement et reprise] --> Services
+    Services --> Repos[Repositories<br/>requêtes et persistance]
+    Repos --> Models[Modèles SQLAlchemy]
+    Models --> PG[(PostgreSQL)]
+    Services --> Providers[Providers<br/>vision et contexte]
+    Providers --> External[Modèles ou API externes]
+    Services --> Domain[Domaine<br/>observations et politique de proximité]
+    Config[Configuration] --> HTTP
+    Config --> Services
+    Config --> Providers

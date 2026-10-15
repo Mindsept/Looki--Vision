@@ -1,0 +1,10 @@
+%% LOOKi - diagramme détaillé dans ../04-vision-et-proximite.md
+flowchart TD
+    Detection[Observation] --> Valid{Distance disponible<br/>et score suffisant ?}
+    Valid -->|Non| Unknown[unknown]
+    Valid -->|Oui| Near{Distance ≤ seuil proche ?}
+    Near -->|Oui| Close[near]
+    Near -->|Non| Far{Distance ≥ seuil loin ?}
+    Far -->|Oui| Distant[far]
+    Far -->|Non| Middle[medium]
+    Close --> Alert[Déclencher une alerte<br/>pour cette image]

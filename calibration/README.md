@@ -19,4 +19,4 @@ calibration correspondante ; un rapport de dimensions incompatible est refusé.
 Le backend conserve dans les métadonnées la matrice utilisée et sa provenance.
 
 La calibration ne garantit pas la justesse du modèle : voir
-[les mesures et limites](../../docs/10-metric-depth-comparison.md).
+[les mesures et limites](../docs/10-metric-depth-comparison.md).
