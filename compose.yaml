@@ -29,6 +29,17 @@ services:
       LOOKI_DEPTH_MODEL_ID: ${LOOKI_DEPTH_MODEL_ID:-}
       LOOKI_DEPTH_BACKEND: ${LOOKI_DEPTH_BACKEND:-depth_anything}
       LOOKI_CAMERA_CALIBRATION_PATH: ${LOOKI_CAMERA_CALIBRATION_PATH:-}
+      LOOKI_DECOUPLED_DEPTH: ${LOOKI_DECOUPLED_DEPTH:-true}
+      LOOKI_DEPTH_INTERVAL_SECONDS: ${LOOKI_DEPTH_INTERVAL_SECONDS:-2}
+      LOOKI_DEPTH_MAX_AGE_SECONDS: ${LOOKI_DEPTH_MAX_AGE_SECONDS:-3}
+      LOOKI_WORKER_POLL_SECONDS: ${LOOKI_WORKER_POLL_SECONDS:-0.01}
+      LOOKI_CPU_THREADS: ${LOOKI_CPU_THREADS:-4}
+      OMP_NUM_THREADS: ${LOOKI_CPU_THREADS:-4}
+      MKL_NUM_THREADS: ${LOOKI_CPU_THREADS:-4}
+      OPENBLAS_NUM_THREADS: ${LOOKI_CPU_THREADS:-4}
+      LOOKI_UNIDEPTH_RESOLUTION_LEVEL: ${LOOKI_UNIDEPTH_RESOLUTION_LEVEL:-}
+      LOOKI_YOLO_IMAGE_SIZE: ${LOOKI_YOLO_IMAGE_SIZE:-640}
+      LOOKI_DEMO_VIDEO_PATH: ${LOOKI_DEMO_VIDEO_PATH:-}
       LOOKI_OBJECT_MODEL_ID: ${LOOKI_OBJECT_MODEL_ID:-PekingU/rtdetr_r18vd}
       LOOKI_OBJECT_CONFIDENCE_THRESHOLD: ${LOOKI_OBJECT_CONFIDENCE_THRESHOLD:-0.5}
       LOOKI_VISION_DEVICE: ${LOOKI_VISION_DEVICE:-cpu}
@@ -45,6 +56,7 @@ services:
     volumes:
       - model_cache:/home/looki/.cache/huggingface
       - ./calibration:/app/calibration:ro
+      - ./media:/app/media:ro
     depends_on:
       db:
         condition: service_healthy
@@ -56,6 +68,8 @@ services:
       retries: 5
     restart: unless-stopped
     stop_grace_period: 30s
+    cpus: ${BACKEND_CPUS:-4}
+    mem_limit: ${BACKEND_MEMORY:-6g}
 volumes:
   postgres_data:
   model_cache:

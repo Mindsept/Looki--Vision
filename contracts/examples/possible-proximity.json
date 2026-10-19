@@ -1,0 +1,155 @@
+{
+  "id": 6370,
+  "type": "alert.possible_proximity",
+  "session_id": "9b787368-e4a5-4a6f-b940-668e855479bd",
+  "timestamp": "2026-10-19T12:40:05.451199Z",
+  "payload": {
+    "frame_id": "aec12067-035a-4a0e-a1c3-5d3429a7eed0",
+    "provider": "yolo_seg_track",
+    "simulated": false,
+    "captured_at": "2026-10-19T12:40:04.743787+00:00",
+    "text": "Proximité possible : une personne occupe une grande partie de l’image et atteint le bord ou se rapproche visuellement. Distance incertaine.",
+    "severity": "warning",
+    "ruleset": "person-visual-v2",
+    "detections": [
+      {
+        "label": "person",
+        "confidence": 0.8042136430740356,
+        "bbox": [
+          0.13872971534729003,
+          0.4225207858615451,
+          0.48414519627888997,
+          0.9938969364872685
+        ],
+        "distance_m": 6.197718620300293,
+        "distance_source": "metric_model",
+        "proximity": "far",
+        "observation_type": "object",
+        "depth_valid_fraction": 1.0,
+        "perception": {
+          "polygons": [
+            [
+              [
+                0.25208,
+                0.47222
+              ],
+              [
+                0.23958,
+                0.51481
+              ],
+              [
+                0.25312,
+                0.59074
+              ],
+              [
+                0.25208,
+                0.67222
+              ],
+              [
+                0.26146,
+                0.68333
+              ],
+              [
+                0.25938,
+                0.70556
+              ],
+              [
+                0.24063,
+                0.74815
+              ],
+              [
+                0.22396,
+                0.82037
+              ],
+              [
+                0.18958,
+                0.90185
+              ],
+              [
+                0.18333,
+                0.93333
+              ],
+              [
+                0.17708,
+                0.94444
+              ],
+              [
+                0.13958,
+                0.95741
+              ],
+              [
+                0.13958,
+                0.99259
+              ],
+              [
+                0.48125,
+                0.99259
+              ],
+              [
+                0.46979,
+                0.87222
+              ],
+              [
+                0.44688,
+                0.79444
+              ],
+              [
+                0.41146,
+                0.75185
+              ],
+              [
+                0.37812,
+                0.69074
+              ],
+              [
+                0.37604,
+                0.63519
+              ],
+              [
+                0.3875,
+                0.59259
+              ],
+              [
+                0.38958,
+                0.54074
+              ],
+              [
+                0.35417,
+                0.45926
+              ],
+              [
+                0.35417,
+                0.42407
+              ],
+              [
+                0.28333,
+                0.42407
+              ]
+            ]
+          ],
+          "mask_area_ratio": 0.10632716049382716,
+          "mask_edges": [
+            "bottom"
+          ],
+          "track_id": null,
+          "track_observations": 0,
+          "risk": "possible",
+          "distance_quality": "uncertain",
+          "reason_codes": [
+            "large_person_mask",
+            "strong_mask_at_edge",
+            "mask_touches_image_edge",
+            "depth_visual_disagreement"
+          ],
+          "evidence": {
+            "bbox_height_ratio": 0.5713761506257233,
+            "track_age_seconds": 0.0,
+            "interval_seconds": 0,
+            "height_growth": null,
+            "area_growth": null
+          }
+        }
+      }
+    ]
+  }
+}

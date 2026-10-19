@@ -10,6 +10,7 @@ erDiagram
     sessions ||--o{ events : journalise
     frames ||--o{ detections : contient
     frames o|--o{ events : origine
+    frames ||--o| depth_jobs : echantillonne
     sessions {
         uuid id PK
         varchar center_id
@@ -50,6 +51,7 @@ erDiagram
         varchar proximity
         varchar observation_type "region ou object"
         float depth_valid_fraction "nullable"
+        json perception "masques, piste, risque et indices"
     }
     events {
         integer id PK "sequence globale"
@@ -59,6 +61,17 @@ erDiagram
         timestamptz timestamp
         json payload
         uuid request_id "nullable"
+    }
+    depth_jobs {
+        uuid id PK
+        uuid frame_id FK,UK "references frames.id"
+        varchar status "pending, processing, completed, failed"
+        bytea masks "masques complets compresses"
+        json observations "snapshot ordonne"
+        json result "nullable, payload metrique"
+        varchar error_code "nullable"
+        timestamptz created_at
+        timestamptz processed_at "nullable"
     }
 ```
 
@@ -76,7 +89,7 @@ flowchart LR
     Row --> Public[Réponse API<br/>expose frame_id du Pi]
 ```
 
-`frames.id` est la clé technique du backend. `frames.frame_id` est la clé métier fournie par le Pi, réutilisée pour les tentatives d’envoi d’une même capture. Les URLs et les événements destinés au Pi/mobile utilisent l’identifiant client. Les clés étrangères des tables `detections` et `events` utilisent la clé interne, malgré leur nom de colonne `frame_id`.
+`frames.id` est la clé technique du backend. `frames.frame_id` est la clé métier fournie par le Pi, réutilisée pour les tentatives d’envoi d’une même capture. Les URLs et les événements destinés au Pi/mobile utilisent l’identifiant client. Les clés étrangères des tables `detections`, `depth_jobs` et `events` utilisent la clé interne, malgré leur nom de colonne `frame_id`.
 
 La même valeur de `frame_id` peut être utilisée dans deux sessions différentes. Une image appartient à une seule session. Il n’y a pas de déduplication globale entre images différentes présentant des octets identiques.
 
@@ -227,3 +240,12 @@ stateDiagram-v2
 La clôture ne supprime pas la session ni son historique. Les images déjà acceptées peuvent terminer leur traitement. Les nouveaux uploads et les nouvelles questions sont refusés ; la lecture et la reprise des événements restent disponibles.
 
 Les relations SQL ont des cascades de suppression, mais aucune route de suppression ni tâche de purge n’est livrée. Supprimer une session directement en base supprimerait ses images, observations et événements associés. Le dimensionnement, la rétention et le droit d’accès par utilisateur restent des travaux à mener avant une exploitation multiutilisateur.
+
+La migration `b84e901df8ac` ajoute `detections.perception JSON NOT NULL DEFAULT '{}'` : masques normalisés, piste temporaire, risque et indices. Aucun état interne du tracker n’est persisté. Voir [segmentation et suivi](12-segmentation-suivi.md).
+
+
+### Échantillons de profondeur indépendants
+
+La migration `c581a9367e02` ajoute `depth_jobs`, liée par une FK unique à `frames.id`. `masks` conserve les masques complets compressés, chargés de façon différée ; `observations` en conserve le snapshot ordonné. `result` contient le payload métrique final et `error_code` son éventuel échec. `created_at` et `processed_at` datent le travail. La contrainte `ck_depth_job_status` borne les quatre états. La réservation sélectionne les travaux `pending` par date de création.
+
+Le résultat visuel reste dans `frames` et `detections`, avec mètres nuls en mode indépendant. Les mètres différés ne le réécrivent pas. Le résultat de profondeur, `frame.depth_analyzed` et l’alerte métrique éventuelle sont validés ensemble. Une reprise remet `processing` en `pending` puis vérifie la fraîcheur de la capture. Voir [le flux complet et le cycle de vie](13-profondeur-independante.md).

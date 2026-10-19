@@ -22,17 +22,27 @@ def create_provider(
     object_confidence_threshold: float = 0.5,
     depth_backend: str = "depth_anything",
     camera_calibration_path: Path | None = None,
+    yolo_image_size: int = 640,
+    cpu_threads: int = 4,
+    unidepth_resolution_level: int | None = None,
 ) -> VisionProvider:
     """Construire un provider explicite; aucune stratégie de fallback implicite."""
     if camera_calibration_path is not None and (
-        name != "urban_objects" or depth_backend != "unidepth_v2"
+        name not in {"urban_objects", "yolo_objects", "yolo_seg_track"}
+        or depth_backend != "unidepth_v2"
     ):
-        raise ValueError("Camera calibration requires urban_objects with unidepth_v2")
+        raise ValueError(
+            "Camera calibration requires urban_objects or yolo_objects with unidepth_v2"
+        )
     if name == "mock":
         return MockVisionProvider()
     if name == "depth_anything_metric":
         return DepthAnythingMetricProvider(model_id=model_id or DEFAULT_MODEL_ID, device=device)
-    if name == "urban_objects":
+    if name in {"urban_objects", "yolo_objects", "yolo_seg_track"}:
+        if name in {"yolo_objects", "yolo_seg_track"}:
+            import torch
+
+            torch.set_num_threads(cpu_threads)
         if depth_backend == "unidepth_v2":
             from app.vision.calibration import CameraCalibration
             from app.vision.unidepth import DEFAULT_UNIDEPTH_MODEL_ID, UniDepthMetricProvider
@@ -44,13 +54,32 @@ def create_provider(
                 else None
             )
             depth_provider = UniDepthMetricProvider(
-                model_id=selected_model, device=device, camera_calibration=calibration
+                model_id=selected_model,
+                device=device,
+                camera_calibration=calibration,
+                **(
+                    {"resolution_level": unidepth_resolution_level}
+                    if unidepth_resolution_level is not None
+                    else {}
+                ),
             )
         elif depth_backend == "depth_anything":
             selected_model = model_id or DEFAULT_OUTDOOR_MODEL_ID
             depth_provider = None
         else:
             raise ValueError(f"Unknown depth backend: {depth_backend}")
+        if name in {"yolo_objects", "yolo_seg_track"}:
+            from app.vision.yolo import YoloObjectsProvider
+
+            return YoloObjectsProvider(
+                depth_model_id=selected_model,
+                device=device,
+                object_confidence_threshold=object_confidence_threshold,
+                depth_provider=depth_provider,
+                image_size=yolo_image_size,
+                cpu_threads=cpu_threads,
+                segment=name == "yolo_seg_track",
+            )
         return UrbanObjectsProvider(
             depth_model_id=selected_model,
             object_model_id=object_model_id,

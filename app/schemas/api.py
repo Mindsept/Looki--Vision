@@ -32,6 +32,7 @@ class DetectionRead(BaseModel):
     proximity: Literal["near", "medium", "far", "unknown"]
     observation_type: Literal["region", "object"] = "region"
     depth_valid_fraction: float | None = None
+    perception: dict = Field(default_factory=dict)
 
 
 class FrameRead(BaseModel):

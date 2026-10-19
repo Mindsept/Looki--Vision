@@ -1,0 +1,165 @@
+{
+  "id": 13606,
+  "type": "alert.possible_proximity",
+  "session_id": "e4876e64-1951-41af-bf07-3a1201bb31df",
+  "timestamp": "2026-10-19T13:43:27.585537Z",
+  "payload": {
+    "frame_id": "2cae0e0a-3e42-44ac-b65e-6b72158258d7",
+    "provider": "yolo_seg_track",
+    "simulated": false,
+    "captured_at": "2026-10-19T13:43:27.405577+00:00",
+    "text": "Proximité possible : voiture à gauche. Vigilance visuelle, distance incertaine.",
+    "severity": "warning",
+    "ruleset": "urban-visual-v4",
+    "detections": [
+      {
+        "label": "car",
+        "confidence": 0.9169489741325378,
+        "bbox": [
+          0.016906181971232098,
+          0.4671709131311487,
+          0.339966615041097,
+          0.709100850423177
+        ],
+        "distance_m": null,
+        "distance_source": "metric_model",
+        "proximity": "unknown",
+        "observation_type": "object",
+        "depth_valid_fraction": null,
+        "perception": {
+          "polygons": [
+            [
+              [
+                0.01771,
+                0.64259
+              ],
+              [
+                0.03333,
+                0.66296
+              ],
+              [
+                0.08958,
+                0.68333
+              ],
+              [
+                0.12396,
+                0.67778
+              ],
+              [
+                0.15417,
+                0.6963
+              ],
+              [
+                0.15937,
+                0.70556
+              ],
+              [
+                0.17292,
+                0.70741
+              ],
+              [
+                0.19167,
+                0.68704
+              ],
+              [
+                0.20521,
+                0.65556
+              ],
+              [
+                0.27604,
+                0.62963
+              ],
+              [
+                0.30312,
+                0.64444
+              ],
+              [
+                0.31458,
+                0.64259
+              ],
+              [
+                0.33333,
+                0.60741
+              ],
+              [
+                0.33854,
+                0.56667
+              ],
+              [
+                0.32396,
+                0.53148
+              ],
+              [
+                0.28958,
+                0.52222
+              ],
+              [
+                0.24896,
+                0.47963
+              ],
+              [
+                0.23229,
+                0.47222
+              ],
+              [
+                0.10417,
+                0.46852
+              ],
+              [
+                0.07396,
+                0.47407
+              ],
+              [
+                0.05625,
+                0.48519
+              ],
+              [
+                0.04583,
+                0.50741
+              ],
+              [
+                0.02083,
+                0.54074
+              ]
+            ]
+          ],
+          "mask_area_ratio": 0.05592592592592593,
+          "mask_edges": [
+            "left"
+          ],
+          "visual_profile": "car",
+          "detection_status": "tracked",
+          "track_id": "f35a7555f1b24fcbb0603dcf74672d14:car:14",
+          "track_observations": 48,
+          "risk": "possible",
+          "motion": "approaching",
+          "alert_emitted": true,
+          "distance_quality": "unavailable",
+          "reason_codes": [
+            "large_object_mask",
+            "persistent_track",
+            "mask_touches_image_edge",
+            "growing_object_mask",
+            "partial_visibility",
+            "depth_unavailable"
+          ],
+          "evidence": {
+            "bbox_height_ratio": 0.24192993729202833,
+            "bbox_width_ratio": 0.32306043306986487,
+            "size_measure": "extent",
+            "size_log_rate_per_second": 0.16008994598121795,
+            "track_age_seconds": 5.464586973190308,
+            "interval_seconds": 0.0646829605102539,
+            "height_growth": 1.0106849638483102,
+            "area_growth": 1.017120404153803,
+            "height_log_rate_per_second": null,
+            "area_log_rate_per_second": 0.2899285535988234,
+            "trend_samples": 10,
+            "partial_visibility": true,
+            "hold_remaining_seconds": 0.7999999523162842
+          }
+        }
+      }
+    ]
+  }
+}

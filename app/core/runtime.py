@@ -4,9 +4,11 @@ from app.core.config import Settings
 from app.core.database import Database
 from app.providers.centres import ContextProvider
 from app.services.analysis import AnalysisWorker
+from app.services.depth import DepthWorker
 from app.services.frames import FrameService
 from app.services.questions import QuestionService
 from app.services.sessions import SessionService
+from app.services.socket_tickets import SocketTickets
 
 
 class Runtime:
@@ -16,8 +18,11 @@ class Runtime:
         # One API process/replica: admission and event commits share this lock.
         self.write_lock = asyncio.Lock()
         self.centres = ContextProvider(settings)
+        self.socket_tickets = SocketTickets()
         self.vision = None
         self.worker_task: asyncio.Task | None = None
+        self.depth_task: asyncio.Task | None = None
+        self.depth_worker = DepthWorker(self)
         self.sessions = SessionService(self)
         self.frames = FrameService(self)
         self.questions = QuestionService(self)

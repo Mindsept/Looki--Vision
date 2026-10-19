@@ -1,0 +1,141 @@
+{
+  "id": 14082,
+  "type": "alert.possible_proximity",
+  "session_id": "13834e49-b71f-4251-9f2e-3ccae96401d4",
+  "timestamp": "2026-10-19T13:44:45.800373Z",
+  "payload": {
+    "frame_id": "9ed49060-c3dd-4d54-bc02-81adffc2707a",
+    "provider": "yolo_seg_track",
+    "simulated": false,
+    "captured_at": "2026-10-19T13:44:45.639712+00:00",
+    "text": "Proximité possible : vélo devant. Vigilance visuelle, distance incertaine.",
+    "severity": "warning",
+    "ruleset": "urban-visual-v4",
+    "detections": [
+      {
+        "label": "bicycle",
+        "confidence": 0.8887008428573608,
+        "bbox": [
+          0.22538819313049316,
+          0.0,
+          0.9972324371337891,
+          0.9489967974494485
+        ],
+        "distance_m": null,
+        "distance_source": "metric_model",
+        "proximity": "unknown",
+        "observation_type": "object",
+        "depth_valid_fraction": null,
+        "perception": {
+          "polygons": [
+            [
+              [
+                0.22656,
+                0.19294
+              ],
+              [
+                0.22656,
+                0.78353
+              ],
+              [
+                0.27813,
+                0.86588
+              ],
+              [
+                0.35,
+                0.92941
+              ],
+              [
+                0.59688,
+                0.92471
+              ],
+              [
+                0.69531,
+                0.82353
+              ],
+              [
+                0.77344,
+                0.62824
+              ],
+              [
+                0.84531,
+                0.70588
+              ],
+              [
+                0.87187,
+                0.76471
+              ],
+              [
+                0.86562,
+                0.72941
+              ],
+              [
+                0.91563,
+                0.68941
+              ],
+              [
+                0.94688,
+                0.63059
+              ],
+              [
+                0.94219,
+                0.48941
+              ],
+              [
+                0.95937,
+                0.47529
+              ],
+              [
+                0.99687,
+                0.55529
+              ],
+              [
+                0.99687,
+                0.0
+              ],
+              [
+                0.375,
+                0.0
+              ]
+            ]
+          ],
+          "mask_area_ratio": 0.6153970588235295,
+          "mask_edges": [
+            "right",
+            "top"
+          ],
+          "visual_profile": "bicycle",
+          "detection_status": "tracked",
+          "track_id": "17dd620c11264f23b434960ef9dee0ea:bicycle:1",
+          "track_observations": 1,
+          "risk": "possible",
+          "motion": "unknown",
+          "alert_emitted": true,
+          "distance_quality": "unavailable",
+          "reason_codes": [
+            "large_object_mask",
+            "strong_mask_at_edge",
+            "mask_touches_image_edge",
+            "partial_visibility",
+            "depth_unavailable"
+          ],
+          "evidence": {
+            "bbox_height_ratio": 0.9489967974494485,
+            "bbox_width_ratio": 0.7718442440032959,
+            "size_measure": "extent",
+            "size_log_rate_per_second": null,
+            "track_age_seconds": 0.0,
+            "interval_seconds": 0,
+            "height_growth": null,
+            "area_growth": null,
+            "height_log_rate_per_second": null,
+            "area_log_rate_per_second": null,
+            "trend_samples": 1,
+            "partial_visibility": true,
+            "hold_remaining_seconds": 0.7999999523162842
+          }
+        }
+      }
+    ]
+  }
+}

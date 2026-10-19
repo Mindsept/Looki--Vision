@@ -17,10 +17,16 @@ client_event = TypeAdapter(Question | Ping)
 
 @router.websocket("/api/v1/sessions/{session_id}/ws")
 async def session_socket(
-    websocket: WebSocket, session_id: UUID, after: int = Query(default=0, ge=0)
+    websocket: WebSocket,
+    session_id: UUID,
+    after: int = Query(default=0, ge=0),
+    ticket: str | None = Query(default=None, max_length=128),
 ):
     runtime = websocket.app.state.runtime
-    if not token_matches(websocket.headers.get("authorization"), runtime.settings.api_key):
+    if not (
+        token_matches(websocket.headers.get("authorization"), runtime.settings.api_key)
+        or runtime.socket_tickets.consume(ticket, session_id)
+    ):
         await websocket.close(code=1008)
         return
     try:

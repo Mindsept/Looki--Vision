@@ -1,8 +1,10 @@
 # 04 — Vision, profondeur et proximité
 
+> Pour `yolo_seg_track`, le flux courant sépare le suivi rapide et la profondeur : voir [le chapitre 13](13-profondeur-independante.md). Les parcours synchrones ci-dessous restent applicables aux autres providers et au mode `LOOKI_DECOUPLED_DEPTH=false`.
+
 Sources Mermaid : [classes vision](diagrams/05-classes-vision.mmd), [fusion urbaine](diagrams/10-vision-urbaine.mmd), [proximité](diagrams/11-proximite.mmd).
 
-## Trois modes, un même contrat métier
+## Quatre modes, un même contrat métier
 
 ```mermaid
 classDiagram
@@ -18,6 +20,9 @@ classDiagram
         +predict_depth(image) DepthPrediction
     }
     class UrbanObjectsProvider {
+        +analyze(image) VisionResult
+    }
+    class YoloObjectsProvider {
         +analyze(image) VisionResult
     }
     class UniDepthMetricProvider {
@@ -57,6 +62,10 @@ classDiagram
     VisionProvider <|.. MockVisionProvider
     VisionProvider <|.. DepthAnythingMetricProvider
     VisionProvider <|.. UrbanObjectsProvider
+    VisionProvider <|.. YoloObjectsProvider
+    YoloObjectsProvider --> UniDepthMetricProvider
+    YoloObjectsProvider --> DepthAnythingMetricProvider
+    YoloObjectsProvider --> DepthPrediction
     UrbanObjectsProvider --> DepthAnythingMetricProvider
     UrbanObjectsProvider --> UniDepthMetricProvider
     UniDepthMetricProvider --> CameraCalibration
@@ -76,8 +85,9 @@ Le champ `simulated` permet au mobile et aux outils de démonstration de disting
 | `mock` | Scénarios fictifs explicitement identifiés | Aucun poids de modèle |
 | `depth_anything_metric` | Trois régions fixes, `observation_type: region` | Depth Anything V2 Metric Indoor Small |
 | `urban_objects` | Classes et boîtes d’objets, `observation_type: object` | RT-DETR R18 + moteur de profondeur configurable |
+| `yolo_objects` | Classes et boîtes d’objets, `observation_type: object` | YOLO26 Nano + moteur de profondeur configurable |
 
-Lorsque `LOOKI_DEPTH_MODEL_ID` est vide ou absent, chaque provider choisit son checkpoint par défaut. Dans `urban_objects`, `LOOKI_DEPTH_BACKEND=depth_anything` choisit Outdoor Small et `LOOKI_DEPTH_BACKEND=unidepth_v2` choisit `lpiccinelli/unidepth-v2-vits14`. Une valeur explicite remplace ce choix. La distinction `observation_type` évite de présenter une zone générique comme un objet reconnu.
+Lorsque `LOOKI_DEPTH_MODEL_ID` est vide ou absent, chaque provider choisit son checkpoint par défaut. Dans `urban_objects` et `yolo_objects`, `LOOKI_DEPTH_BACKEND=depth_anything` choisit Outdoor Small et `LOOKI_DEPTH_BACKEND=unidepth_v2` choisit `lpiccinelli/unidepth-v2-vits14`. Une valeur explicite remplace ce choix. La distinction `observation_type` évite de présenter une zone générique comme un objet reconnu.
 
 ## Simulation reproductible
 
@@ -182,6 +192,10 @@ Le moteur UniDepth V2 utilise l’API officielle `infer()` pour prédire une pro
 
 `depth_intrinsics_source` vaut `provided` lorsque la calibration est fournie et `estimated` sinon. `depth_intrinsics` contient la matrice effectivement utilisée à la résolution de l’image ; `depth_model_estimated_intrinsics` conserve séparément la matrice estimée par le réseau, même lorsqu’une calibration mesurée lui a été fournie. `depth_calibration_reference_size` et `depth_intrinsics_image_size` rendent le redimensionnement vérifiable. La borne de rejet numérique de `10 000 m` dans cet adapter n’est ni une portée validée ni un multiplicateur d’échelle.
 
+## YOLO26 Nano pour le flux vidéo
+
+Le provider `yolo_objects` exécute YOLO26n puis le moteur de profondeur choisi sur le même RGB. Il réutilise la fusion et les seuils existants. Le budget CPU, le niveau de résolution UniDepth, les événements et le frontend sont documentés dans le [chapitre 11](11-video-live-yolo.md). YOLO n’est pas un estimateur métrique à lui seul. `confidence` représente ici le score YOLO.
+
 ## Distinguer les temps de calcul
 
 Les résultats HTTP et `frame.analyzed` contiennent un objet `timing_ms`. Avec Depth Anything, `depth_inference_ms` isole l’appel du réseau de profondeur. Avec UniDepth, il chronomètre l’API officielle `infer()`, qui contient son prétraitement et son post-traitement internes ; `metadata.depth_timing_scope` rend cette différence explicite. `depth_total_ms` couvre l’étape de profondeur avec la préparation et l’extraction ajoutées par l’adapter. Pour `urban_objects`, `detection_inference_ms` isole RT-DETR et `detection_total_ms` inclut aussi ses étapes de préparation et de conversion. `fusion_ms` mesure l’association des boîtes à la profondeur ; `total_vision_ms` couvre le provider entier.
@@ -254,3 +268,7 @@ flowchart TD
 ```
 
 Les tests automatisés, les fixtures et une inférence sur des photographies sans vérité terrain ne remplacent pas cette campagne. Une photo peut permettre de contrôler les échanges et la cohérence des seuils, sans établir que l’obstacle est réellement à la distance annoncée. En particulier, il ne faut pas convertir la sortie d’un checkpoint de profondeur relative en mètres en appliquant arbitrairement un facteur. Le provider exige une configuration métrique pour éviter cette ambiguïté.
+
+## Segmentation et suivi
+
+Le provider `yolo_seg_track` ajoute YOLO26n-seg, l’échantillonnage dans les masques, ByteTrack et `alert.possible_proximity`. Les règles métriques précédentes restent inchangées. Voir [le chapitre 12](12-segmentation-suivi.md) pour les classes, la décision sur indices contradictoires et les limites.

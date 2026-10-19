@@ -1,5 +1,7 @@
 # 01 — Architecture logicielle
 
+> Pour `yolo_seg_track`, le flux courant sépare le suivi rapide et la profondeur : voir [le chapitre 13](13-profondeur-independante.md). Les parcours synchrones ci-dessous restent applicables aux autres providers et au mode `LOOKI_DECOUPLED_DEPTH=false`.
+
 Sources Mermaid : [architecture](diagrams/01-architecture.mmd), [couches](diagrams/02-couches.mmd), [classes](diagrams/03-classes-services.mmd) et [déploiement](diagrams/12-deploiement-compose.mmd).
 
 ## Périmètre et frontières

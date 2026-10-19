@@ -401,6 +401,218 @@
           }
         }
       }
+    },
+    "/api/v1/sessions/{session_id}/ws-ticket": {
+      "post": {
+        "tags": [
+          "Live"
+        ],
+        "summary": "Websocket Ticket",
+        "operationId": "websocket_ticket_api_v1_sessions__session_id__ws_ticket_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Session Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sessions/{session_id}/frames/{frame_id}/image": {
+      "get": {
+        "tags": [
+          "Live"
+        ],
+        "summary": "Frame Image",
+        "operationId": "frame_image_api_v1_sessions__session_id__frames__frame_id__image_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Session Id"
+            }
+          },
+          {
+            "name": "frame_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Frame Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "image/jpeg": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/runtime": {
+      "get": {
+        "tags": [
+          "Live"
+        ],
+        "summary": "Runtime Info",
+        "operationId": "runtime_info_api_v1_runtime_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/demo-video": {
+      "get": {
+        "tags": [
+          "Live"
+        ],
+        "summary": "Demo Video",
+        "operationId": "demo_video_api_v1_demo_video_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "video/mp4": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/sessions/{session_id}/frames/{frame_id}/depth": {
+      "get": {
+        "tags": [
+          "Live"
+        ],
+        "summary": "Frame Depth",
+        "operationId": "frame_depth_api_v1_sessions__session_id__frames__frame_id__depth_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Session Id"
+            }
+          },
+          {
+            "name": "frame_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Frame Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -421,6 +633,11 @@
             "type": "string",
             "contentMediaType": "application/octet-stream",
             "title": "Image"
+          },
+          "latest_only": {
+            "type": "boolean",
+            "title": "Latest Only",
+            "default": false
           }
         },
         "type": "object",
@@ -492,6 +709,11 @@
               }
             ],
             "title": "Depth Valid Fraction"
+          },
+          "perception": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Perception"
           }
         },
         "type": "object",

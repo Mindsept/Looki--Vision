@@ -70,3 +70,20 @@ class FrameRepository:
             .order_by(Frame.captured_at.desc(), Frame.received_at.desc())
             .limit(1)
         )
+
+    async def pending_for_session(self, session_id: UUID) -> list[Frame]:
+        return list(
+            await self.db.scalars(
+                select(Frame).where(Frame.session_id == session_id, Frame.status == "pending")
+            )
+        )
+
+    async def image_bytes(self, session_id: UUID, frame_id: UUID) -> bytes | None:
+        return await self.db.scalar(
+            select(Frame.image).where(Frame.session_id == session_id, Frame.frame_id == frame_id)
+        )
+
+    async def latest_capture(self, session_id: UUID):
+        return await self.db.scalar(
+            select(func.max(Frame.captured_at)).where(Frame.session_id == session_id)
+        )

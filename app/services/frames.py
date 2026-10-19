@@ -9,6 +9,7 @@ from PIL import Image, UnidentifiedImageError
 
 from app.core.errors import DomainError
 from app.core.time import as_utc, utcnow
+from app.repositories.events import EventRepository
 from app.repositories.frames import FrameRepository
 from app.repositories.sessions import SessionRepository
 from app.services.serialization import frame_read
@@ -42,7 +43,15 @@ class FrameService:
     def __init__(self, runtime):
         self.runtime = runtime
 
-    async def ingest(self, session_id: UUID, frame_id: UUID, timestamp: datetime, image: bytes):
+    async def ingest(
+        self,
+        session_id: UUID,
+        frame_id: UUID,
+        timestamp: datetime,
+        image: bytes,
+        *,
+        latest_only: bool = False,
+    ):
         settings = self.runtime.settings
         if timestamp.tzinfo is None or timestamp.utcoffset() is None:
             raise DomainError(422, "timezone_required", "timestamp doit inclure un fuseau horaire.")
@@ -73,6 +82,27 @@ class FrameService:
                 raise DomainError(
                     422, "invalid_timestamp", "Image périmée ou horodatage dans le futur."
                 )
+            if latest_only:
+                latest_capture = await repo.latest_capture(session_id)
+                if latest_capture is not None and as_utc(latest_capture) >= timestamp:
+                    raise DomainError(
+                        409, "out_of_order_frame", "Une capture plus récente a déjà été reçue."
+                    )
+                for pending in await repo.pending_for_session(session_id):
+                    pending.status = "failed"
+                    pending.error_code = "superseded_frame"
+                    pending.processed_at = utcnow()
+                    await EventRepository(db).add(
+                        session_id,
+                        "analysis.failed",
+                        {
+                            "frame_id": str(pending.frame_id),
+                            "code": "superseded_frame",
+                            "text": "Image remplacée avant analyse par une capture plus récente.",
+                        },
+                        frame_id=pending.id,
+                    )
+                await db.flush()
             if await repo.pending_count() >= settings.max_pending_frames:
                 raise DomainError(
                     429, "queue_full", "File d'analyse pleine. Réessayer après une seconde."
@@ -106,3 +136,11 @@ class FrameService:
             if row is None:
                 raise DomainError(404, "frame_not_found", "Image inconnue.")
             return frame_read(row, await repo.detections(row.id))
+
+    async def image(self, session_id: UUID, frame_id: UUID):
+        async with self.runtime.db.sessions() as db:
+            await require_session(SessionRepository(db), session_id)
+            image = await FrameRepository(db).image_bytes(session_id, frame_id)
+            if image is None:
+                raise DomainError(404, "frame_not_found", "Image inconnue.")
+            return image

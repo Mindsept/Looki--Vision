@@ -1,0 +1,22 @@
+flowchart TD
+    JPEG["JPEG horodaté + session"] --> YOLO["YOLO26n-seg réel"]
+    JPEG --> Depth["UniDepthV2 métrique"]
+    YOLO --> Mask["Masque complet par instance"]
+    Mask --> Fusion["p20 des mètres dans le masque"]
+    Depth --> Fusion
+    YOLO --> Track["ByteTrack par classe et session"]
+    Track --> History["Historique borné des observations réelles"]
+    Fusion --> Metric{"Distance exploitable ≤ 1,5 m ?"}
+    Metric -->|Oui| Near["alert.proximity"]
+    Metric -->|Non| Cues{"Personne imposante + indices visuels ?"}
+    History --> Cues
+    Mask --> Cues
+    Cues -->|"Bord et surface ≥ 8 %"| Possible["alert.possible_proximity"]
+    Cues -->|"Suivi confirmé + bord ou croissance"| Possible
+    Cues -->|Non| Quiet["Pas de signal supplémentaire"]
+    Possible --> Uncertain["Mètres bruts conservés ; distance incertaine"]
+    Near --> DB[("Détections et événements PostgreSQL")]
+    Uncertain --> DB
+    Quiet --> DB
+    DB --> WS["WebSocket unique + rejeu"]
+    WS --> UI["Image exacte, masques, identités et motifs"]

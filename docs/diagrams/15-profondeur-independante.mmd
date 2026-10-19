@@ -1,0 +1,19 @@
+flowchart TD
+    Pi["JPEG à 15 ips"] --> Queue["File visuelle latest_only"]
+    Queue --> Fast["YOLO segmentation puis suivi et tendance"]
+    Fast --> Visual["frame.analyzed : mètres non mesurés"]
+    Fast --> Risk["Alerte visuelle autonome"]
+    Fast --> Gate{"Profondeur libre et intervalle écoulé ?"}
+    Gate -->|Oui| Job[("depth_jobs : frame + masques complets + observations")]
+    Gate -->|Non| Next["Image suivante sans attendre"]
+    Job --> Slow["UniDepth dans un second traitement"]
+    Slow --> Fresh{"Capture encore assez récente ?"}
+    Fresh -->|Oui| Sample["frame.depth_analyzed sur la capture source"]
+    Fresh -->|Non ou échec| Failure["depth.failed ; le suivi continue"]
+    Sample --> Metric["Alerte métrique éventuelle"]
+    Visual --> WS["Un seul WebSocket avec curseur"]
+    Risk --> WS
+    Sample --> WS
+    Metric --> WS
+    Failure --> WS
+    WS --> UI["Vue visuelle rapide + panneau profondeur séparé"]

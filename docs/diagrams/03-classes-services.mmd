@@ -10,6 +10,7 @@ classDiagram
         +FrameService frames
         +QuestionService questions
         +AnalysisWorker worker
+        +DepthWorker depth_worker
     }
     class SessionService {
         +create(data)
@@ -74,3 +75,23 @@ classDiagram
     AnalysisWorker --> EventRepository
     AnalysisWorker --> VisionProvider
     AnalysisWorker *-- ProximityService
+    class DepthWorker {
+        +bool busy
+        +float next_due
+        +recover()
+        +run()
+        +process(job)
+        +predict(image_bytes, masks, observations)
+    }
+    class DepthRepository {
+        +claim_next()
+        +recover()
+        +get_for_frame(session_id, frame_id)
+    }
+    Runtime *-- DepthWorker
+    AnalysisWorker --> DepthWorker : admission
+    AnalysisWorker --> DepthRepository
+    DepthWorker --> DepthRepository
+    DepthWorker --> FrameRepository
+    DepthWorker --> EventRepository
+    DepthWorker --> ProximityService

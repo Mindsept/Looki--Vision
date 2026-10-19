@@ -1,9 +1,11 @@
 import asyncio
 import logging
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, RedirectResponse
+from fastapi.staticfiles import StaticFiles
 from sqlalchemy import text
 
 from app.controllers.http import router as http_router
@@ -37,17 +39,38 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 object_confidence_threshold=settings.object_confidence_threshold,
                 depth_backend=settings.depth_backend,
                 camera_calibration_path=settings.camera_calibration_path,
+                **(
+                    {"unidepth_resolution_level": settings.unidepth_resolution_level}
+                    if settings.unidepth_resolution_level is not None
+                    else {}
+                ),
+                **(
+                    {
+                        "yolo_image_size": settings.yolo_image_size,
+                        "cpu_threads": settings.cpu_threads,
+                    }
+                    if settings.vision_provider in {"yolo_objects", "yolo_seg_track"}
+                    else {}
+                ),
             )
             if settings.worker_enabled:
                 await runtime.worker.recover()
                 runtime.worker_task = asyncio.create_task(
                     runtime.worker.run(), name="looki-analysis-worker"
                 )
+                if settings.vision_provider == "yolo_seg_track" and settings.decoupled_depth:
+                    await runtime.depth_worker.recover()
+                    runtime.depth_task = asyncio.create_task(
+                        runtime.depth_worker.run(), name="looki-depth-worker"
+                    )
             yield
         finally:
             if runtime.worker_task:
                 runtime.worker_task.cancel()
                 await asyncio.gather(runtime.worker_task, return_exceptions=True)
+            if runtime.depth_task:
+                runtime.depth_task.cancel()
+                await asyncio.gather(runtime.depth_task, return_exceptions=True)
             await runtime.db.dispose()
 
     application = FastAPI(
@@ -81,12 +104,27 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 and (runtime.worker_task is None or runtime.worker_task.done())
             ):
                 raise RuntimeError("Worker unavailable")
+            if (
+                settings.worker_enabled
+                and settings.vision_provider == "yolo_seg_track"
+                and settings.decoupled_depth
+                and (runtime.depth_task is None or runtime.depth_task.done())
+            ):
+                raise RuntimeError("Depth worker unavailable")
             return {"status": "ready", "vision_provider": settings.vision_provider}
         except Exception:
             return JSONResponse(status_code=503, content={"status": "unavailable"})
 
     application.include_router(http_router)
     application.include_router(websocket_router)
+    static = Path(__file__).resolve().parent / "static"
+    if static.is_dir():
+        application.mount("/live", StaticFiles(directory=static, html=True), name="live")
+
+        @application.get("/", include_in_schema=False)
+        async def home():
+            return RedirectResponse("/live/")
+
     return application
 
 

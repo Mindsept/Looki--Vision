@@ -61,3 +61,19 @@ class ProximityService:
         center = (x1 + x2) / 2
         direction = "à gauche" if center < 1 / 3 else "à droite" if center > 2 / 3 else "devant"
         return f"{prefix}Attention, {name} {direction}, à environ {distance:.2f} mètre."
+
+    @staticmethod
+    def possible_warning_text(detections: list[dict]) -> str:
+        objects = []
+        for item in detections:
+            name = FRENCH_OBJECT_NAMES.get(item["label"], "objet")
+            center = (item["bbox"][0] + item["bbox"][2]) / 2
+            direction = "à gauche" if center < 1 / 3 else "à droite" if center > 2 / 3 else "devant"
+            wording = f"{name} {direction}"
+            if wording not in objects:
+                objects.append(wording)
+        return (
+            "Proximité possible : "
+            + ", ".join(objects)
+            + ". Vigilance visuelle, distance incertaine."
+        )

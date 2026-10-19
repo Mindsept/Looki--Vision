@@ -354,3 +354,15 @@ def test_object_labels_at_the_right_edge_anchor_inside_the_image():
     frame["detections"][0]["bbox"] = [0.8, 0.2, 0.99, 0.8]
     overlay, _ = module.render_detections(frame, urban=True)
     assert "align-right" in overlay
+
+
+@pytest.mark.parametrize("near", [False, True])
+def test_segment_report_expects_mask_fusion_instead_of_a_central_bbox(near):
+    frame, events = urban_observation(near)
+    frame["provider"] = "yolo_seg_track"
+    frame["metadata"]["central_bbox_ratio"] = None
+    for event in events:
+        event["payload"]["provider"] = "yolo_seg_track"
+        if event["type"] == "frame.analyzed":
+            event["payload"]["metadata"] = deepcopy(frame["metadata"])
+    assert module.validate_observation(frame, events, deepcopy(events), "yolo_seg_track") == []

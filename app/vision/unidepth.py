@@ -172,7 +172,11 @@ class UniDepthMetricProvider:
                 "depth_intrinsics_image_size": [image.width, image.height],
                 "depth_horizontal_fov_deg": fov,
                 "depth_resolution_level": self.resolution_level,
-                "depth_resolution_policy": "official infer: 200k..600k pixels by default",
+                "depth_resolution_policy": (
+                    "official infer: 200k..600k pixels by default"
+                    if self.resolution_level is None
+                    else f"official infer: resolution_level={self.resolution_level}"
+                ),
                 "depth_dtype": "float32",
                 "depth_semantics": "camera z in meters; not Euclidean range",
                 "depth_max_semantics": "10000m rejection ceiling; not trained range or scale factor",

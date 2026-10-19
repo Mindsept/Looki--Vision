@@ -1,0 +1,170 @@
+{
+  "id": 8504,
+  "type": "frame.depth_analyzed",
+  "session_id": "6363f982-7a9d-416f-8d02-88ae0eb06db8",
+  "timestamp": "2026-10-19T13:20:13.318518Z",
+  "payload": {
+    "frame_id": "753a9f46-955b-4293-ae8e-696e63dd5793",
+    "captured_at": "2026-10-19T13:20:12.038278+00:00",
+    "provider": "yolo_seg_track",
+    "simulated": false,
+    "text": "Profondeur de cette capture uniquement.",
+    "detections": [
+      {
+        "label": "person",
+        "confidence": 0.621654748916626,
+        "bbox": [
+          0.6189136505126953,
+          0.9028720431857639,
+          0.6756654739379883,
+          1.0
+        ],
+        "distance_m": 21.111675262451172,
+        "distance_source": "metric_model",
+        "proximity": "far",
+        "observation_type": "object",
+        "depth_valid_fraction": 1.0,
+        "perception": {
+          "polygons": [
+            [
+              [
+                0.64062,
+                0.9037
+              ],
+              [
+                0.63542,
+                0.92593
+              ],
+              [
+                0.62917,
+                0.93704
+              ],
+              [
+                0.62396,
+                0.96852
+              ],
+              [
+                0.61979,
+                0.97593
+              ],
+              [
+                0.61979,
+                0.99815
+              ],
+              [
+                0.675,
+                0.99815
+              ],
+              [
+                0.675,
+                0.98333
+              ],
+              [
+                0.67083,
+                0.97407
+              ],
+              [
+                0.66667,
+                0.9537
+              ],
+              [
+                0.65417,
+                0.92407
+              ],
+              [
+                0.65417,
+                0.9037
+              ]
+            ]
+          ],
+          "mask_area_ratio": 0.003580246913580247,
+          "mask_edges": [
+            "bottom"
+          ],
+          "track_id": "5d4906d18b34453e8e6d6d8772aa6240:person:1",
+          "track_observations": 1,
+          "risk": "not_flagged",
+          "motion": "unknown",
+          "alert_emitted": false,
+          "distance_quality": "estimated",
+          "reason_codes": [],
+          "evidence": {
+            "bbox_height_ratio": 0.09712795681423614,
+            "track_age_seconds": 0.0,
+            "interval_seconds": 0,
+            "height_growth": null,
+            "area_growth": null,
+            "height_log_rate_per_second": null,
+            "area_log_rate_per_second": null,
+            "trend_samples": 1,
+            "partial_visibility": true,
+            "hold_remaining_seconds": 0
+          }
+        }
+      }
+    ],
+    "timing_ms": {
+      "depth_preprocess_ms": 0.3594579993659863,
+      "depth_inference_ms": 1167.5375009999698,
+      "depth_postprocess_ms": 0.1340829994660453,
+      "depth_total_ms": 1168.0310419988018,
+      "depth_job_total_ms": 1172.1281669997552
+    },
+    "metadata": {
+      "depth_backend": "unidepth_v2",
+      "depth_model_id": "lpiccinelli/unidepth-v2-vits14",
+      "depth_model_revision": "038c238f06c87b6c2f5b3749fd51fbf442b1f218",
+      "depth_source_revision": "8d8cfe4c7ee15297099983607febf0d4f32eb3d6",
+      "depth_intrinsics": [
+        [
+          615.1555786132812,
+          0.0,
+          483.1530456542969
+        ],
+        [
+          0.0,
+          598.3692016601562,
+          278.0386657714844
+        ],
+        [
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "depth_intrinsics_source": "estimated",
+      "depth_model_estimated_intrinsics": [
+        [
+          615.1555786132812,
+          0.0,
+          483.1530456542969
+        ],
+        [
+          0.0,
+          598.3692016601562,
+          278.0386657714844
+        ],
+        [
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "depth_calibration_reference_size": null,
+      "depth_intrinsics_image_size": [
+        960,
+        540
+      ],
+      "depth_horizontal_fov_deg": 75.9291494520649,
+      "depth_resolution_level": 0,
+      "depth_resolution_policy": "official infer: resolution_level=0",
+      "depth_dtype": "float32",
+      "depth_semantics": "camera z in meters; not Euclidean range",
+      "depth_max_semantics": "10000m rejection ceiling; not trained range or scale factor",
+      "depth_timing_scope": "depth_inference_ms measures official infer, including its internal normalization, resizing, network and output reconstruction",
+      "depth_mode": "independent_sample",
+      "source_frame_id": "753a9f46-955b-4293-ae8e-696e63dd5793",
+      "result_age_seconds": 1.279582
+    }
+  }
+}

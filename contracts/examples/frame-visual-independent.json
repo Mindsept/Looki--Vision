@@ -1,0 +1,165 @@
+{
+  "id": 8486,
+  "type": "frame.analyzed",
+  "session_id": "6363f982-7a9d-416f-8d02-88ae0eb06db8",
+  "timestamp": "2026-10-19T13:20:12.119423Z",
+  "payload": {
+    "frame_id": "753a9f46-955b-4293-ae8e-696e63dd5793",
+    "provider": "yolo_seg_track",
+    "simulated": false,
+    "captured_at": "2026-10-19T13:20:12.038278+00:00",
+    "text": "Objets détectés : person.",
+    "detections": [
+      {
+        "label": "person",
+        "confidence": 0.621654748916626,
+        "bbox": [
+          0.6189136505126953,
+          0.9028720431857639,
+          0.6756654739379883,
+          1.0
+        ],
+        "distance_m": null,
+        "distance_source": "metric_model",
+        "proximity": "unknown",
+        "observation_type": "object",
+        "depth_valid_fraction": null,
+        "perception": {
+          "polygons": [
+            [
+              [
+                0.64062,
+                0.9037
+              ],
+              [
+                0.63542,
+                0.92593
+              ],
+              [
+                0.62917,
+                0.93704
+              ],
+              [
+                0.62396,
+                0.96852
+              ],
+              [
+                0.61979,
+                0.97593
+              ],
+              [
+                0.61979,
+                0.99815
+              ],
+              [
+                0.675,
+                0.99815
+              ],
+              [
+                0.675,
+                0.98333
+              ],
+              [
+                0.67083,
+                0.97407
+              ],
+              [
+                0.66667,
+                0.9537
+              ],
+              [
+                0.65417,
+                0.92407
+              ],
+              [
+                0.65417,
+                0.9037
+              ]
+            ]
+          ],
+          "mask_area_ratio": 0.003580246913580247,
+          "mask_edges": [
+            "bottom"
+          ],
+          "track_id": "5d4906d18b34453e8e6d6d8772aa6240:person:1",
+          "track_observations": 1,
+          "risk": "not_flagged",
+          "motion": "unknown",
+          "alert_emitted": false,
+          "distance_quality": "unavailable",
+          "reason_codes": [],
+          "evidence": {
+            "bbox_height_ratio": 0.09712795681423614,
+            "track_age_seconds": 0.0,
+            "interval_seconds": 0,
+            "height_growth": null,
+            "area_growth": null,
+            "height_log_rate_per_second": null,
+            "area_log_rate_per_second": null,
+            "trend_samples": 1,
+            "partial_visibility": true,
+            "hold_remaining_seconds": 0
+          }
+        }
+      }
+    ],
+    "latency_ms": 63.86433300031058,
+    "timing_ms": {
+      "detection_preprocess_ms": 0.5822920002174214,
+      "detection_inference_ms": 52.760540999770456,
+      "detection_postprocess_ms": 1.8325830005778698,
+      "detection_total_ms": 55.967416999919806,
+      "fusion_ms": 2.281500000208325,
+      "total_vision_ms": 58.514999999715656,
+      "tracking_risk_ms": 0.21154099977138685
+    },
+    "metadata": {
+      "depth_mode": "independent",
+      "object_model_id": "Ultralytics/YOLO26/yolo26n-seg.pt",
+      "object_model_revision": "070ac3c51435984d992ba92eb3f234daf4e4500d",
+      "object_input_size": 640,
+      "object_confidence_threshold": 0.5,
+      "depth_model_id": "lpiccinelli/unidepth-v2-vits14",
+      "depth_model_revision": "038c238f06c87b6c2f5b3749fd51fbf442b1f218",
+      "depth_max_m": 10000.0,
+      "device": "cpu",
+      "cpu_threads": 2,
+      "observation_type": "object",
+      "confidence_semantics": "object_detection_score",
+      "depth_valid_fraction_semantics": "valid_depth_pixel_fraction",
+      "depth_percentile": 20,
+      "central_bbox_ratio": null,
+      "depth_min_valid_fraction": 0.5,
+      "depth_method": "Raw metric depth p20 inside full instance mask; no bbox fallback",
+      "tracker": "ByteTrack/class-separated",
+      "tracking_cadence": "analyzed_frames_only",
+      "tracking_epoch": "5d4906d18b34453e8e6d6d8772aa6240",
+      "tracking_reset": false,
+      "proximity_rules": {
+        "version": "person-visual-v3",
+        "labels": [
+          "person"
+        ],
+        "min_bbox_height": 0.55,
+        "min_mask_area": 0.035,
+        "immediate_edge_min_area": 0.08,
+        "min_observations": 2,
+        "min_history_seconds": 0.25,
+        "max_gap_seconds": 2.0,
+        "trend_window_seconds": 1.0,
+        "trend_min_seconds": 0.35,
+        "trend_min_samples": 3,
+        "min_height_log_rate": 0.12,
+        "min_area_log_rate": 0.24,
+        "large_static_height": 0.72,
+        "large_static_area": 0.08,
+        "hold_seconds": 0.8,
+        "repeat_alert_seconds": 2.0
+      },
+      "near_threshold_m": 1.5,
+      "far_threshold_m": 3.0,
+      "min_confidence": 0.5,
+      "depth_sample_status": "scheduled"
+    }
+  }
+}

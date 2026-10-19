@@ -83,7 +83,9 @@
                   "enum": [
                     "mock",
                     "depth_anything_metric",
-                    "urban_objects"
+                    "urban_objects",
+                    "yolo_objects",
+                    "yolo_seg_track"
                   ]
                 }
               },
@@ -373,7 +375,8 @@
                 "code": {
                   "enum": [
                     "stale_frame",
-                    "inference_failed"
+                    "inference_failed",
+                    "superseded_frame"
                   ]
                 },
                 "text": {
@@ -472,6 +475,223 @@
             "payload"
           ],
           "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "type": {
+              "const": "alert.possible_proximity"
+            },
+            "session_id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "timestamp": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "payload": {
+              "type": "object",
+              "properties": {
+                "frame_id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "provider": {
+                  "type": "string"
+                },
+                "simulated": {
+                  "type": "boolean"
+                },
+                "captured_at": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "text": {
+                  "type": "string"
+                },
+                "severity": {
+                  "const": "warning"
+                },
+                "detections": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/$defs/detection"
+                  }
+                },
+                "ruleset": {
+                  "enum": [
+                    "person-visual-v2",
+                    "person-visual-v3",
+                    "urban-visual-v4"
+                  ]
+                }
+              },
+              "required": [
+                "frame_id",
+                "provider",
+                "simulated",
+                "captured_at",
+                "text",
+                "severity",
+                "detections",
+                "ruleset"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "id",
+            "type",
+            "session_id",
+            "timestamp",
+            "payload"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "type": {
+              "const": "frame.depth_analyzed"
+            },
+            "session_id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "timestamp": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "payload": {
+              "type": "object",
+              "properties": {
+                "frame_id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "provider": {
+                  "type": "string"
+                },
+                "simulated": {
+                  "type": "boolean"
+                },
+                "captured_at": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "text": {
+                  "type": "string"
+                },
+                "detections": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/$defs/detection"
+                  }
+                },
+                "timing_ms": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "number",
+                    "minimum": 0
+                  }
+                },
+                "metadata": {
+                  "type": "object"
+                }
+              },
+              "required": [
+                "frame_id",
+                "provider",
+                "simulated",
+                "captured_at",
+                "text",
+                "detections"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "id",
+            "type",
+            "session_id",
+            "timestamp",
+            "payload"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "type": {
+              "const": "depth.failed"
+            },
+            "session_id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "timestamp": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "payload": {
+              "type": "object",
+              "properties": {
+                "frame_id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "code": {
+                  "enum": [
+                    "stale_depth",
+                    "depth_inference_failed"
+                  ]
+                },
+                "text": {
+                  "type": "string"
+                },
+                "provider": {
+                  "const": "yolo_seg_track"
+                },
+                "simulated": {
+                  "const": false
+                },
+                "captured_at": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              },
+              "required": [
+                "frame_id",
+                "code",
+                "text",
+                "provider",
+                "simulated",
+                "captured_at"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "id",
+            "type",
+            "session_id",
+            "timestamp",
+            "payload"
+          ],
+          "additionalProperties": false
         }
       ]
     },
@@ -531,6 +751,107 @@
           ],
           "minimum": 0,
           "maximum": 1
+        },
+        "perception": {
+          "type": "object",
+          "description": "Masques normalisés, identifiant de suivi, risque et indices. Vide pour les anciens providers.",
+          "properties": {
+            "polygons": {
+              "type": "array",
+              "maxItems": 8,
+              "items": {
+                "type": "array",
+                "maxItems": 64,
+                "items": {
+                  "type": "array",
+                  "minItems": 2,
+                  "maxItems": 2,
+                  "items": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  }
+                }
+              }
+            },
+            "mask_area_ratio": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "mask_edges": {
+              "type": "array",
+              "items": {
+                "enum": [
+                  "left",
+                  "right",
+                  "bottom",
+                  "top"
+                ]
+              }
+            },
+            "track_id": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "track_observations": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "risk": {
+              "enum": [
+                "metric_near",
+                "possible",
+                "not_flagged",
+                "approaching"
+              ]
+            },
+            "distance_quality": {
+              "enum": [
+                "estimated",
+                "uncertain",
+                "unavailable"
+              ]
+            },
+            "reason_codes": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "evidence": {
+              "type": "object"
+            },
+            "motion": {
+              "enum": [
+                "approaching",
+                "receding",
+                "stable",
+                "unknown"
+              ]
+            },
+            "alert_emitted": {
+              "type": "boolean"
+            },
+            "detection_status": {
+              "enum": [
+                "tentative",
+                "confident",
+                "tracked"
+              ]
+            },
+            "visual_profile": {
+              "enum": [
+                "person",
+                "bicycle",
+                "car",
+                null
+              ]
+            }
+          },
+          "additionalProperties": false
         }
       },
       "required": [

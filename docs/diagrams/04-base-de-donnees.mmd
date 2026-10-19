@@ -4,6 +4,7 @@ erDiagram
     sessions ||--o{ events : journalise
     frames ||--o{ detections : contient
     frames o|--o{ events : origine
+    frames ||--o| depth_jobs : echantillonne
     sessions {
         uuid id PK
         varchar center_id
@@ -44,6 +45,7 @@ erDiagram
         varchar proximity
         varchar observation_type "region ou object"
         float depth_valid_fraction "nullable"
+        json perception "masques, piste, risque et indices"
     }
     events {
         integer id PK "sequence globale"
@@ -53,4 +55,15 @@ erDiagram
         timestamptz timestamp
         json payload
         uuid request_id "nullable"
+    }
+    depth_jobs {
+        uuid id PK
+        uuid frame_id FK,UK "references frames.id"
+        varchar status "pending, processing, completed, failed"
+        bytea masks "masques complets compresses"
+        json observations "snapshot ordonne"
+        json result "nullable, payload metrique"
+        varchar error_code "nullable"
+        timestamptz created_at
+        timestamptz processed_at "nullable"
     }

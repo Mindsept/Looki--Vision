@@ -25,6 +25,7 @@ class DetectionResult:
     distance_source: Literal["simulated", "metric_model"] = "simulated"
     observation_type: Literal["region", "object"] = "region"
     depth_valid_fraction: float | None = None
+    perception: dict = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         if not self.label:
@@ -60,6 +61,8 @@ class VisionResult:
     simulated: bool
     timing_ms: dict[str, float] = field(default_factory=dict)
     metadata: dict = field(default_factory=dict)
+    # Internal compressed masks for an occasional depth job; never sent over WS.
+    depth_masks: bytes | None = None
 
 
 class VisionProvider(Protocol):

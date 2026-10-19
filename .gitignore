@@ -69,3 +69,8 @@ coverage/
 ._*
 Thumbs.db
 .idea/
+
+# Vidéos privées et interface compilée
+/media/*
+!/media/.gitkeep
+/app/static/

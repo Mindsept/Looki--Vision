@@ -8,8 +8,8 @@ Ce dossier est la **racine du dépôt Git** (`LOOKi/backend/` dans le workspace)
 flowchart LR
     Pi["Raspberry Pi — JPEG horodatés"] -->|POST multipart| API["FastAPI — contrôleurs et services"]
     API --> DB[(PostgreSQL)]
-    DB --> Worker["Worker d’analyse intégré"]
-    Worker --> Vision["RT-DETR et profondeur métrique<br/>ou provider mock"]
+    DB --> Worker["Worker visuel et worker profondeur indépendant"]
+    Worker --> Vision["YOLO26n / RT-DETR et profondeur métrique<br/>ou provider mock"]
     Vision --> Worker
     Worker -->|Résultats et alertes| DB
     API <-->|Un WebSocket| Phone["iPhone — STT et TTS"]
@@ -29,6 +29,7 @@ curl --fail http://127.0.0.1:8000/health/ready
 
 Le fichier d’exemple sélectionne `mock`, sans poids de modèle. Un `.env` existant conserve ses réglages de vision réelle. Compose construit depuis `.` et monte `./calibration/` ; il applique les migrations Alembic avant de démarrer l’API et son worker. PostgreSQL reste sur le réseau Docker interne. Le nom de projet `looki` conserve les volumes existants après le déplacement du Compose.
 
+- [Interface vidéo réelle](http://127.0.0.1:8000/live/) : masques, suivi des objets, mètres estimés et alertes de proximité possible ; [configuration et règles actuelles](docs/14-proximite-urbaine.md).
 - [Swagger HTTP](http://127.0.0.1:8000/docs) et [OpenAPI](http://127.0.0.1:8000/openapi.json).
 - Clé locale par défaut : `Authorization: Bearer looki-local-dev-key`.
 - Backend lié à `127.0.0.1:8000` : l’accès depuis un Pi/iPhone physique demande une exposition adaptée ; HTTPS/WSS demande un reverse proxy TLS.
@@ -66,12 +67,14 @@ La démo crée une session, envoie une image proche simulée, vérifie l’analy
 │   ├── models/           # Tables SQLAlchemy
 │   ├── core/             # Configuration, DB, authentification, runtime
 │   ├── providers/        # Contexte centres : JSON local ou REST
-│   └── vision/           # Mock, Depth Anything, UniDepthV2, RT-DETR, calibration
+│   └── vision/           # Mock, Depth Anything, UniDepthV2, YOLO26n, RT-DETR, calibration
 ├── alembic/              # Migrations PostgreSQL
 ├── calibration/          # Calibration réelle de caméra, montée en lecture seule
 ├── contracts/            # OpenAPI, JSON Schema et exemples
 ├── docs/                 # Architecture, données, flux, exploitation, évaluations
-│   └── diagrams/         # 12 diagrammes Mermaid autonomes (.mmd)
+│   └── diagrams/         # 16 diagrammes Mermaid autonomes (.mmd)
+├── frontend/             # React / Vite, construit et servi par FastAPI sous /live/
+├── media/                # Vidéos locales ignorées par Git, montage en lecture seule
 ├── fixtures/             # Contextes et images de test sourcées
 ├── scripts/              # Démo, évaluations et export OpenAPI
 ├── tests/                # Tests des règles, providers et protocoles
@@ -79,7 +82,7 @@ La démo crée une session, envoie une image proche simulée, vérifie l’analy
 └── uv.lock
 ```
 
-Les contrôleurs appellent les services ; les repositories portent les requêtes SQL. Les providers isolent les modèles et le backend centres. L’inférence s’exécute hors de la boucle HTTP, dans un worker intégré au même processus. La base sert de file durable et de journal de reprise. **Un seul worker Uvicorn et une seule réplique** sont prévus dans ce POC.
+Les contrôleurs appellent les services ; les repositories portent les requêtes SQL. Les providers isolent les modèles et le backend centres. L’inférence s’exécute hors de la boucle HTTP : en mode `yolo_seg_track`, un worker visuel et un worker de profondeur tournent dans le même processus. La base sert de file durable et de journal de reprise. **Un seul worker Uvicorn et une seule réplique** sont prévus dans ce POC.
 
 ## Documentation et schémas
 
@@ -94,12 +97,22 @@ Le [sommaire détaillé](docs/README.md) décrit les choix et leurs limites. Les
 | Questions et reconnexion | [Questions](docs/diagrams/07-questions-websocket.mmd), [rejeu](docs/diagrams/08-reconnexion-websocket.mmd) | [API et événements](contracts/README.md) |
 | Objets et distances | [Fusion vision](docs/diagrams/10-vision-urbaine.mmd), [proximité](docs/diagrams/11-proximite.mmd) | [Vision et proximité](docs/04-vision-et-proximite.md) |
 | Conteneurs et volumes | [Déploiement Compose](docs/diagrams/12-deploiement-compose.mmd) | [Installation et exploitation](docs/05-installation-et-exploitation.md) |
+| Segmentation et suivi | [Fusion et décision](docs/diagrams/14-segmentation-suivi.mmd) | [Règles, classes, persistance et tests](docs/12-segmentation-suivi.md) |
+| Personnes, vélos et voitures | [Décision par classe](docs/diagrams/16-proximite-urbaine.mmd) | [Détection et vigilance v4](docs/14-proximite-urbaine.md) |
+| Suivi rapide et profondeur indépendante | [Deux cadences](docs/diagrams/15-profondeur-independante.mmd) | [Règles v3, reprise, contrats et mesures](docs/13-profondeur-independante.md) |
+| Vidéo et YOLO26n | [Flux vidéo](docs/diagrams/13-video-live.mmd) | [Interface, 4 vCPU et mesures réelles](docs/11-video-live-yolo.md) |
 
 ## Vision réelle et alertes
 
+`yolo_seg_track` active **YOLO26n-seg + ByteTrack**, avec **UniDepthV2 toutes les 2 secondes** dans un traitement indépendant. Le suivi des personnes, vélos et voitures exploite la croissance de taille et la surface du masque pour signaler une approche ou une proximité possible. Un rétrécissement dû à une visibilité partielle ne supprime pas immédiatement la vigilance. Les mètres restent attachés à leur capture source, consultable séparément dans le front.
+
+La campagne de référence v3 (640 pixels, seuil 0,50) sur les 45 secondes de la vidéo NYC, sous quota Docker **4 CPU**, mesurait : **13,1 images analysées/s**, **69 ms** de vision en médiane, 21 échantillons de profondeur et 14 événements de proximité possible ; aucune erreur. Les modèles tournent avec 2 threads chacun. Le profil v4 utilise 768 pixels et un seuil de détection à 0,25, avec des alertes nouvelles à 0,50 ; il mesure **8,54 ips**, avec **14 alertes personnes et 4 alertes voitures**, sans erreur. Le test réel complémentaire sur photo déclenche aussi une alerte vélo. [Résultats et compromis](docs/14-proximite-urbaine.md). Ces chiffres locaux ARM64 ne prédisent pas ceux d’une autre VM et les alertes ne prouvent pas des distances physiques. [Architecture, résultats et limites](docs/13-profondeur-independante.md).
+
+`yolo_objects` associe YOLO26 Nano et la profondeur métrique sur le même JPEG. Le frontend envoie 15 JPEG/s avec une file bornée par remplacement : la campagne locale à 4 CPU mesure **1,45 analyse complète/s**, avec **672 ms** de vision en médiane. [Activation, résultats et limites](docs/11-video-live-yolo.md).
+
 `depth_anything_metric` estime la profondeur de trois régions fixes. `urban_objects` détecte des objets avec RT-DETR et leur associe une profondeur issue de Depth Anything Outdoor ou UniDepthV2. Une calibration réelle peut être fournie à UniDepthV2 : [activation et configuration](docs/05-installation-et-exploitation.md#activer-la-profondeur-métrique).
 
-Par défaut, une observation exploitable à **≤ 1,5 m** est `near`, à **≥ 3 m** elle est `far`, sinon `medium`. Une distance absente ou un score insuffisant donne `unknown`. Une image avec au moins une observation `near` produit un événement `alert.proximity` regroupant toutes les observations proches. Les captures périmées sont refusées pour éviter une alerte obsolète ; aucun suivi d’objet ni cooldown n’est encore appliqué.
+Par défaut, une observation exploitable à **≤ 1,5 m** est `near`, à **≥ 3 m** elle est `far`, sinon `medium`. Une distance absente ou un score insuffisant donne `unknown`. Une image avec au moins une observation `near` produit un événement `alert.proximity` regroupant toutes les observations proches. Les captures périmées sont refusées pour éviter une alerte obsolète ; le suivi est disponible dans `yolo_seg_track`, avec limitation des répétitions visuelles par piste ; le mobile gère encore la politique audio.
 
 Après installation locale des dépendances de développement, avec le serveur en `urban_objects` :
 
@@ -110,7 +123,7 @@ Après installation locale des dépendances de développement, avec le serveur e
   --output-dir output/urban-current-evaluation
 ```
 
-Les [essais urbains](docs/09-test-urbain.md) et la [comparaison avec références physiques](docs/10-metric-depth-comparison.md) distinguent temps de calcul, erreurs métriques et alertes transmises. Les distances monoculaires restent des estimations : le modèle et la calibration doivent être validés sur la caméra Pi finale. Le LLM, le suivi vidéo et les itinéraires restent prévus pour la suite ; les réponses aux questions sont déterministes et le STT/TTS appartient à l’iPhone.
+Les [essais urbains](docs/09-test-urbain.md) et la [comparaison avec références physiques](docs/10-metric-depth-comparison.md) distinguent temps de calcul, erreurs métriques et alertes transmises. Les distances monoculaires restent des estimations : le modèle et la calibration doivent être validés sur la caméra Pi finale. Le LLM et les itinéraires restent prévus pour la suite ; les réponses aux questions sont déterministes et le STT/TTS appartient à l’iPhone.
 
 ## Développer et tester
 

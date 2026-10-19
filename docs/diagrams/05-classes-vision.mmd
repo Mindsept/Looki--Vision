@@ -14,6 +14,10 @@ classDiagram
     class UrbanObjectsProvider {
         +analyze(image) VisionResult
     }
+    class YoloObjectsProvider {
+        +analyze_visual(image, include_masks) VisionResult
+        +analyze(image) VisionResult
+    }
     class UniDepthMetricProvider {
         +predict_depth(image) DepthPrediction
     }
@@ -32,6 +36,7 @@ classDiagram
         +matrix_for_size(width, height) ndarray
     }
     class VisionResult {
+        +bytes depth_masks
         +str provider
         +list detections
         +str description
@@ -47,10 +52,15 @@ classDiagram
         +str distance_source
         +str observation_type
         +float depth_valid_fraction
+        +dict perception
     }
     VisionProvider <|.. MockVisionProvider
     VisionProvider <|.. DepthAnythingMetricProvider
     VisionProvider <|.. UrbanObjectsProvider
+    VisionProvider <|.. YoloObjectsProvider
+    YoloObjectsProvider --> UniDepthMetricProvider
+    YoloObjectsProvider --> DepthAnythingMetricProvider
+    YoloObjectsProvider --> DepthPrediction
     UrbanObjectsProvider --> DepthAnythingMetricProvider
     UrbanObjectsProvider --> UniDepthMetricProvider
     UniDepthMetricProvider --> CameraCalibration
@@ -59,3 +69,11 @@ classDiagram
     UrbanObjectsProvider --> DepthPrediction
     VisionProvider --> VisionResult
     VisionResult "1" *-- "0..*" DetectionResult
+    class PerceptionService {
+        +enrich(result, session, frame, timestamp, dimensions) VisionResult
+    }
+    class ByteTrackAdapter {
+        +update(detections) dict
+    }
+    PerceptionService --> ByteTrackAdapter
+    PerceptionService --> VisionResult

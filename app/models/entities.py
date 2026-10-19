@@ -89,6 +89,25 @@ class Detection(Base):
         String(16), default="region", server_default="region"
     )
     depth_valid_fraction: Mapped[float | None] = mapped_column(Float)
+    perception: Mapped[dict] = mapped_column(JSON, default=dict, server_default="{}")
+
+
+class DepthJob(Base):
+    __tablename__ = "depth_jobs"
+    __table_args__ = (
+        CheckConstraint(
+            "status IN ('pending', 'processing', 'completed', 'failed')", name="ck_depth_job_status"
+        ),
+    )
+    id: Mapped[UUID] = mapped_column(Uuid, primary_key=True, default=uuid4)
+    frame_id: Mapped[UUID] = mapped_column(ForeignKey("frames.id", ondelete="CASCADE"), unique=True)
+    status: Mapped[str] = mapped_column(String(16), default="pending")
+    masks: Mapped[bytes] = mapped_column(LargeBinary, deferred=True)
+    observations: Mapped[list] = mapped_column(JSON)
+    result: Mapped[dict | None] = mapped_column(JSON)
+    error_code: Mapped[str | None] = mapped_column(String(100))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    processed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
 class Event(Base):

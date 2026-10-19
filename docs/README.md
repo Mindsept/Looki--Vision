@@ -14,6 +14,10 @@ flowchart TD
     Vision --> Indoor[08 — Essai sur photos réelles]
     Vision --> Urban[09 — Objets urbains et durées isolées]
     Urban --> Metric[10 — Comparaison avec références mesurées]
+    Urban --> Live[11 — Vidéo live, YOLO26n et budget CPU]
+    Live --> Seg[12 — Segmentation, suivi et proximité possible]
+    Seg --> Async[13 — Suivi rapide et profondeur indépendante]
+    Async --> UrbanV4[14 — Personnes, vélos et voitures]
     Ops --> Decisions
 ```
 
@@ -29,12 +33,16 @@ flowchart TD
 | [08 — Test sur images réelles](08-test-images-reelles.md) | Photographies sourcées, procédure, observations et limites de la mesure | Backend, Embedded, Hardware |
 | [09 — Test urbain](09-test-urbain.md) | Objets de rue, fusion avec la profondeur, temps isolés et alertes | Backend, Embedded, Hardware |
 | [10 — Comparaison métrique](10-metric-depth-comparison.md) | Modèles candidats, calibration, références physiques, erreurs et alertes manquées | Backend, Embedded, Hardware, PO |
+| [11 — Vidéo live](11-video-live-yolo.md) | Interface React, YOLO26n, file latest, tickets WebSocket, mesures réelles à 4 CPU | Backend, Embedded, PO |
+| [12 — Segmentation et suivi](12-segmentation-suivi.md) | Masques, ByteTrack, indices contradictoires, classes, persistance et tests CPU | Backend, Embedded, PO |
+| [13 — Profondeur indépendante](13-profondeur-independante.md) | Deux cadences, tendance de taille, mémoire du risque, reprise et mesures à 4 CPU | Backend, Embedded, iPhone, PO |
+| [14 — Proximité urbaine](14-proximite-urbaine.md) | Profils personnes/vélos/voitures, détection, motifs et tests à 4 CPU | Backend, Embedded, iPhone, PO |
 
 Les formats échangeables se trouvent dans [`../contracts/`](../contracts/README.md). La spécification HTTP est publiée à l’exécution sur `/openapi.json` et `/docs`. Le schéma WebSocket complète OpenAPI, qui ne décrit pas les messages échangés sur une connexion ouverte.
 
 ## Sources Mermaid autonomes
 
-Les **12 fichiers `.mmd`** du [catalogue des diagrammes](diagrams/README.md) couvrent l’architecture, les couches, les classes métier et vision, les tables BDD, l’ingestion, les questions, la reconnexion, le cycle des images, la proximité et le déploiement Compose. Ils complètent les schémas intégrés aux chapitres.
+Les **16 fichiers `.mmd`** du [catalogue des diagrammes](diagrams/README.md) couvrent l’architecture, les couches, les classes métier et vision, les tables BDD, l’ingestion, les questions, la reconnexion, le cycle des images, la proximité et le déploiement Compose. Ils complètent les schémas intégrés aux chapitres.
 
 La racine de toutes les commandes est désormais le **dépôt `backend/`** : `compose.yaml`, `.env.example`, `README.md`, `contracts/` et ce dossier `docs/` sont réunis au même endroit.
 

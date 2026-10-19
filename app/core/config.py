@@ -20,10 +20,19 @@ class Settings(BaseSettings):
     worker_enabled: bool = True
     worker_poll_seconds: float = Field(default=0.2, ge=0.01)
     websocket_poll_seconds: float = Field(default=0.2, ge=0.01)
-    vision_provider: Literal["mock", "depth_anything_metric", "urban_objects"] = "mock"
+    vision_provider: Literal[
+        "mock", "depth_anything_metric", "urban_objects", "yolo_objects", "yolo_seg_track"
+    ] = "mock"
     depth_model_id: str | None = None
     depth_backend: Literal["depth_anything", "unidepth_v2"] = "depth_anything"
     camera_calibration_path: Path | None = None
+    unidepth_resolution_level: int | None = Field(default=None, ge=0, le=9)
+    yolo_image_size: int = Field(default=640, ge=320, le=1280, multiple_of=32)
+    cpu_threads: int = Field(default=4, ge=1, le=64)
+    decoupled_depth: bool = True
+    depth_interval_seconds: float = Field(default=2.0, ge=0.5, le=60)
+    depth_max_age_seconds: float = Field(default=3.0, ge=0.5, le=30)
+    demo_video_path: Path | None = None
     object_model_id: str = "PekingU/rtdetr_r18vd"
     object_confidence_threshold: float = Field(default=0.5, ge=0, le=1)
     vision_device: str = "cpu"
@@ -42,17 +51,26 @@ class Settings(BaseSettings):
     centres_timeout_seconds: float = Field(default=3.0, gt=0)
     fixtures_dir: Path = Path(__file__).resolve().parents[2] / "fixtures"
 
-    @field_validator("depth_model_id", "camera_calibration_path", mode="before")
+    @field_validator(
+        "depth_model_id",
+        "camera_calibration_path",
+        "demo_video_path",
+        "unidepth_resolution_level",
+        mode="before",
+    )
     @classmethod
     def empty_depth_model_uses_provider_default(cls, value):
-        return value or None
+        return None if value == "" else value
 
     @model_validator(mode="after")
     def validate_limits(self):
         if self.camera_calibration_path is not None and (
-            self.vision_provider != "urban_objects" or self.depth_backend != "unidepth_v2"
+            self.vision_provider not in {"urban_objects", "yolo_objects", "yolo_seg_track"}
+            or self.depth_backend != "unidepth_v2"
         ):
-            raise ValueError("Camera calibration requires urban_objects with unidepth_v2")
+            raise ValueError(
+                "Camera calibration requires urban_objects or yolo_objects with unidepth_v2"
+            )
         if self.far_threshold_m <= self.near_threshold_m:
             raise ValueError("far_threshold_m must exceed near_threshold_m")
         if self.max_request_bytes <= self.max_image_bytes:

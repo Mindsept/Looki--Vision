@@ -24,6 +24,7 @@ from websockets.asyncio.client import connect
 BACKEND_DIR = Path(__file__).resolve().parents[1]
 EXPECTED_PROVIDER = "depth_anything_metric"
 URBAN_PROVIDER = "urban_objects"
+OBJECT_PROVIDERS = {URBAN_PROVIDER, "yolo_objects", "yolo_seg_track"}
 URBAN_TIMING_KEYS = (
     "depth_preprocess_ms",
     "depth_inference_ms",
@@ -192,7 +193,7 @@ def validate_observation(
                 f"Résultat attendu : provider {expected_provider} et simulated=false."
             )
         detections = frame.get("detections", [])
-        if expected_provider == URBAN_PROVIDER:
+        if expected_provider in OBJECT_PROVIDERS:
             timings = frame.get("timing_ms", {})
             missing = set(URBAN_TIMING_KEYS) - set(timings)
             if missing:
@@ -214,7 +215,7 @@ def validate_observation(
                 violations.append("Identifiants des modèles profondeur et détection manquants.")
             expected_metadata = {
                 "depth_percentile": 20,
-                "central_bbox_ratio": 0.8,
+                "central_bbox_ratio": None if expected_provider == "yolo_seg_track" else 0.8,
                 "confidence_semantics": "object_detection_score",
                 "depth_valid_fraction_semantics": "valid_depth_pixel_fraction",
             }
@@ -222,7 +223,7 @@ def validate_observation(
                 if metadata.get(key) != expected_value:
                     violations.append(f"Métadonnée de fusion inattendue : {key}.")
         for item in detections:
-            if expected_provider == URBAN_PROVIDER:
+            if expected_provider in OBJECT_PROVIDERS:
                 if item.get("observation_type") != "object":
                     violations.append(
                         "Le provider urbain doit exposer des objets, pas des régions fixes."
@@ -254,7 +255,7 @@ def validate_observation(
                 or payload.get("simulated") is not False
             ):
                 violations.append("frame.analyzed indique un provider simulé ou inattendu.")
-            if expected_provider == URBAN_PROVIDER:
+            if expected_provider in OBJECT_PROVIDERS:
                 for field in ("timing_ms", "metadata"):
                     if payload.get(field) != frame.get(field):
                         violations.append(f"Le champ {field} diffère entre HTTP et frame.analyzed.")
@@ -643,7 +644,7 @@ def render_sample_table(records: list[dict], urban: bool) -> str:
 
 
 def render_html(report: dict) -> str:
-    urban = report.get("expected_provider", EXPECTED_PROVIDER) == URBAN_PROVIDER
+    urban = report.get("expected_provider", EXPECTED_PROVIDER) in OBJECT_PROVIDERS
     reference_note = (
         "Le corpus possède des cartes de référence. Ce rapport vérifie le protocole et les alertes calculées ; la précision des mètres est évaluée séparément dans le rapport comparatif métrique."
         if report.get("ground_truth_available")
@@ -900,7 +901,7 @@ def main() -> None:
     parser.add_argument("--timeout", type=float, default=120.0)
     parser.add_argument(
         "--expected-provider",
-        choices=[EXPECTED_PROVIDER, URBAN_PROVIDER],
+        choices=[EXPECTED_PROVIDER, *sorted(OBJECT_PROVIDERS)],
         default=EXPECTED_PROVIDER,
     )
     parser.add_argument(
@@ -916,7 +917,7 @@ def main() -> None:
         parser.error("--timeout doit être strictement positif.")
     if args.repeat < 1:
         parser.error("--repeat doit être un entier supérieur ou égal à 1.")
-    urban = args.expected_provider == URBAN_PROVIDER
+    urban = args.expected_provider in OBJECT_PROVIDERS
     args.images_dir = args.images_dir or BACKEND_DIR / "fixtures" / (
         "urban-images" if urban else "real-images"
     )

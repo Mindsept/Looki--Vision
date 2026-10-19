@@ -7,7 +7,7 @@ Ces fichiers `.mmd` contiennent directement du Mermaid, sans balises Markdown. I
 | [01 — Architecture](01-architecture.mmd) | Composants | Pi, iPhone, backend, modèles, PostgreSQL et centres ; [frontières](../01-architecture.md) |
 | [02 — Couches](02-couches.mmd) | Dépendances | Contrôleurs, schémas, services, repositories et providers ; [responsabilités](../01-architecture.md#organisation-par-responsabilité) |
 | [03 — Classes métier](03-classes-services.mmd) | Classes | Composition du Runtime, services et repositories ; [cycle de vie](../01-architecture.md#classes-et-composition-du-runtime) |
-| [04 — Base de données](04-base-de-donnees.mmd) | Entités / relations | Les quatre tables métier, colonnes, clés et cardinalités ; [dictionnaire complet](../02-base-de-donnees.md) |
+| [04 — Base de données](04-base-de-donnees.mmd) | Entités / relations | Les cinq tables métier, colonnes, clés et cardinalités ; [dictionnaire complet](../02-base-de-donnees.md) |
 | [05 — Classes vision](05-classes-vision.mmd) | Classes | Contrat VisionProvider, résultats, modèles et calibration ; [providers](../04-vision-et-proximite.md) |
 | [06 — Ingestion et alerte](06-ingestion-et-alerte.mmd) | Séquence | Upload, admission, worker, transactions et livraison mobile ; [protocole](../03-contrats-et-flux.md) |
 | [07 — Questions vocales](07-questions-websocket.mmd) | Séquence | STT mobile, question WS, idempotence et réponse déterministe ; [questions](../03-contrats-et-flux.md#questions-et-idempotence) |
@@ -16,13 +16,17 @@ Ces fichiers `.mmd` contiennent directement du Mermaid, sans balises Markdown. I
 | [10 — Vision urbaine](10-vision-urbaine.mmd) | Flux de données | Profondeur et objets, fusion et provenance des estimations ; [vision](../04-vision-et-proximite.md) |
 | [11 — Règle de proximité](11-proximite.mmd) | Décision | Distance/score exploitables, seuils inclusifs, alerte par image ; [règles](../04-vision-et-proximite.md) |
 | [12 — Compose](12-deploiement-compose.mmd) | Déploiement | Build local, migrations, conteneurs, volumes, calibration et ports ; [exploitation](../05-installation-et-exploitation.md) |
+| [13 — Vidéo live](13-video-live.mmd) | Flux de données | Capture à 15 ips, file bornée, YOLO26n, UniDepth et interface ; [mesures CPU](../11-video-live-yolo.md) |
+| [14 — Segmentation et suivi](14-segmentation-suivi.mmd) | Décision | Masques réels, ByteTrack, proximité possible et indices ; [règles et tests](../12-segmentation-suivi.md) |
+| [15 — Profondeur indépendante](15-profondeur-independante.mmd) | Flux de données | Suivi rapide, file durable de profondeur et consultation de la capture source ; [architecture actuelle](../13-profondeur-independante.md) |
+| [16 — Proximité urbaine](16-proximite-urbaine.mmd) | Décision | Profils par classe, suivi des observations faibles et alerte ; [règles v4](../14-proximite-urbaine.md) |
 
 ## Conventions importantes
 
 - Les classes correspondent aux classes Python ; les contrôleurs FastAPI sont des modules avec des fonctions de routes, pas des classes artificielles.
 - Dans l’ERD, `||` signifie exactement un, `o|` zéro ou un et `o{` zéro à plusieurs. Les clés étrangères utilisent `frames.id`, distinct du `frame_id` transmis par le Pi. Les clés étrangères sont en suppression `CASCADE`. Les unicités composées, index et contraintes sont détaillés dans le chapitre BDD.
 - `center_id` et `user_id` sont des identifiants externes. Le contexte est un snapshot JSON ; aucune table centres/utilisateurs ni table questions n’est créée ici. Les réponses sont conservées dans `events`. Alembic ajoute sa table technique `alembic_version`, absente de l’ERD métier.
-- Les schémas de flux expriment les dépendances des données. L’implémentation actuelle exécute profondeur puis détection séquentiellement, dans un worker unique.
+- Les schémas de flux expriment les dépendances des données. Les calculs restent séquentiels pour `urban_objects` et `yolo_objects`. En `yolo_seg_track`, le suivi et la profondeur sont indépendants par défaut ; les schémas 13/14 décrivent la version synchrone historique, le schéma 15 le flux courant.
 - Compose expose HTTP/WS sur localhost. HTTPS/WSS et l’accès distant demandent une configuration de déploiement supplémentaire.
 - STT/TTS appartiennent à l’application iPhone. La réponse du backend n’utilise pas encore de LLM. Une estimation monoculaire n’est pas une mesure garantie.
 

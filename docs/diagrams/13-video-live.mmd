@@ -1,0 +1,18 @@
+%% LOOKi - voir ../11-video-live-yolo.md
+flowchart LR
+    Video[Video reelle dans le navigateur] -->|Cible 15 JPEG par seconde| HTTP[Controleur HTTP FastAPI]
+    HTTP --> Admission[FrameService - latest_only]
+    Admission -->|Remplacements pending de la meme session| Replaced[analysis.failed - superseded_frame]
+    Admission --> DB[(PostgreSQL - JPEG et journal)]
+    Replaced --> DB
+    DB --> Worker[Worker unique - image la plus recente en attente]
+    Worker --> YOLO[YOLO26 Nano - objets et boites]
+    YOLO --> Depth[UniDepthV2 - profondeur de la meme image]
+    Depth --> Fusion[P20 dans chaque boite - metres estimes]
+    Fusion --> Policy[Politique de proximite - seuil 1.5 m]
+    Policy --> DB
+    DB --> WS[WebSocket - frame.analyzed et alert.proximity]
+    WS --> UI[React - vue de l image analysee et alertes]
+    UI -->|GET JPEG exact par frame_id| HTTP
+    HTTP --> UI
+    Tickets[Ticket temporaire a usage unique] --> WS

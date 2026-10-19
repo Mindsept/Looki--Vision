@@ -1,0 +1,19 @@
+flowchart TD
+    Image["JPEG original"] --> YOLO["YOLO26n-seg : 768 pixels, seuil 0,25"]
+    YOLO --> Dup["Supprimer les doublons : meme classe, boite et masque superposes"]
+    Dup --> Track["ByteTrack : associer les observations fortes et recuperer les pistes faibles"]
+    Track --> Profile{"Profil de l'objet"}
+    Profile --> Person["Personne : hauteur et surface"]
+    Profile --> Bike["Velo : hauteur OU largeur et surface du masque"]
+    Profile --> Car["Voiture : hauteur OU largeur et surface du masque"]
+    Person --> Trend["Tendance sur 1 seconde et taille persistante"]
+    Bike --> Trend
+    Car --> Trend
+    Trend --> Confidence{"Score actuel au moins 0,50 ?"}
+    Confidence -->|Oui| Decision["Approche et proximite possible selon le profil"]
+    Confidence -->|Non| Hold["Peut conserver un risque connu pendant 800 ms"]
+    Decision --> Event["Alerte nommant la classe et sa direction"]
+    Hold --> Event
+    Dup --> Depth["Profondeur independante toutes les 2 secondes"]
+    Event --> Front["Frontend : masque, piste, tendance, motifs"]
+    Depth --> Snapshot["Metres consultables sur la capture source"]

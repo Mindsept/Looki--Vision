@@ -25,6 +25,7 @@ def detection_read(row: Detection) -> DetectionRead:
         proximity=row.proximity,
         observation_type=row.observation_type or "region",
         depth_valid_fraction=row.depth_valid_fraction,
+        perception=row.perception or {},
     )
 
 
