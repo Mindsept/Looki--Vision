@@ -1,14 +1,14 @@
 %% Depuis la racine Git backend/ : docker compose up --build -d
 flowchart TB
     Client["Client local / scripts"] -->|"HTTP et WS : 127.0.0.1:8000"| API
-    Env[".env local<br/>.env.example : mock par défaut"] --> Compose
+    Env[".env copié depuis .env.example<br/>YOLO26n-seg + UniDepthV2 par défaut"] --> Compose
     Source["Contexte de build : .<br/>Dockerfile + pyproject.toml + uv.lock"] --> Compose
     subgraph Compose["Docker Compose - projet looki"]
         subgraph Backend["Service backend - utilisateur looki"]
             Migration["alembic upgrade head"] --> API["FastAPI / Uvicorn<br/>un seul processus"]
             API --> Runtime["Runtime et cycle de vie"]
-            Runtime --> Worker["AnalysisWorker intégré<br/>une image à la fois"]
-            Runtime --> Vision["Provider mock ou modèles chargés en mémoire"]
+            Runtime --> Worker["AnalysisWorker visuel<br/>et DepthWorker indépendant"]
+            Runtime --> Vision["YOLO26n-seg + ByteTrack et UniDepthV2<br/>quota partagé de 4 CPU"]
             Worker --> Vision
         end
         PG[("Service db<br/>PostgreSQL 16:5432<br/>aucun port hôte publié")]
@@ -20,7 +20,8 @@ flowchart TB
         Vision --> Cache[("Volume looki_model_cache<br/>/home/looki/.cache/huggingface")]
     end
     Calibration["./calibration/ sur l'hôte"] -. "montage lecture seule /app/calibration" .-> Vision
-    Models["Dépôt de poids des modèles"] -. "téléchargement initial en mode réel" .-> Cache
+    Models["Hugging Face - révisions figées"] -. "premier démarrage ou cache absent" .-> Cache
+    Cache -. "conservé après compose down" .-> Vision
     API --> Ready["/health/ready<br/>base + provider + worker"]
     Remote["Pi / iPhone distants"] -. "déploiement à configurer" .-> TLS["Reverse proxy HTTPS / WSS<br/>hors de ce Compose"]
     TLS -.-> API

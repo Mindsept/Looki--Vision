@@ -8,7 +8,8 @@ mindmap
     Simplicité de lancement
       Compose à la racine
       PostgreSQL et backend
-      Mode mock par défaut
+      Vision réelle dans le profil partagé
+      Mode mock pour tests isolés
     Contrats stables
       JPEG multipart
       Un WebSocket bidirectionnel
@@ -23,7 +24,7 @@ mindmap
       Règles métier isolées
     Limites explicites
       Un processus applicatif
-      Pas de vidéo temporelle
+      Mouvement apparent sans vitesse physique
       Pas de LLM
       Pas de garantie anticollision
 ```
@@ -37,7 +38,7 @@ mindmap
 | Worker intégré | Lancement avec deux services Compose | Pas de montée en charge multiprocessus sans évolution de la réservation et des verrous |
 | Journal d’événements en base | Reconnexion et inspection par HTTP | Lecture périodique et coûts de conservation |
 | Verrou d’écriture local | Ordre cohérent entre validation et curseur d’événement | Coordination valable uniquement dans le processus unique prévu |
-| Alertes pour chaque image proche | Répond au besoin de répétition systématique | La fréquence vocale peut nécessiter une stratégie mobile explicite |
+| Alertes métriques par capture proche et vigilance visuelle par piste | Signaler aussi les indices visuels lorsque les mètres sont incertains | Répétition visuelle limitée à deux secondes par piste ; politique audio à définir côté mobile |
 | Snapshot de contexte par session | Cohérence du contexte d’une session | Une modification du centre n’apparaît pas automatiquement en cours de session |
 | Clé Bearer partagée | Intégration simple du Pi et de l’iPhone | Pas d’isolation entre personnes ou appareils possédant cette clé |
 
@@ -69,15 +70,18 @@ flowchart TD
     Delivered --> Depth[Adapter Depth Anything métrique]
     Delivered --> Zone[Proximité de zones gauche, centre, droite]
     Delivered --> Objects[RT-DETR et profondeur Outdoor<br/>objets urbains et distances]
+    Delivered --> Seg[YOLO26n-seg et ByteTrack<br/>masques et suivi par session]
+    Delivered --> Visual[Approche et proximité visuelle<br/>personnes, vélos, voitures]
+    Delivered --> Async[UniDepthV2 indépendant<br/>mètres attachés à la capture source]
     Delivered --> Policy[Seuils et événements]
-    Next[Étapes suivantes] --> Semantic[Améliorer les classes couvertes<br/>et la fusion avec segmentation]
-    Next --> Temporal[Analyse temporelle et suivi vidéo]
+    Next[Étapes suivantes] --> Semantic[Améliorer les classes couvertes<br/>et valider sur des scènes annotées]
+    Next --> Temporal[Évaluer mouvements de caméra<br/>et changements de pistes]
     Next --> Calibration[Validation sur caméra finale]
     Next --> LLM[Descriptions et dialogues avec LLM]
     Next --> Maps[Localisation et itinéraires]
 ```
 
-L’adapter métrique a été vérifié avec les poids officiels chargés sur CPU, puis sur des photographies réelles. `urban_objects` ajoute des classes d’objets RT-DETR et une fusion avec la profondeur Outdoor. Ces contrôles valident le branchement logiciel ; ils ne valident pas l’exactitude physique des distances. Les libellés de régions de `depth_anything_metric` restent distincts des classes d’objets de `urban_objects`. Les distances simulées servent uniquement à vérifier le comportement applicatif.
+Les modèles ont été chargés sur CPU et les traitements vérifiés sur des photographies et la vidéo NYC. Le profil partagé `yolo_seg_track` combine désormais segmentation, suivi et proximité visuelle avec une profondeur indépendante. L’[approche face aux distances surestimées](04-vision-et-proximite.md#approche-actuelle-face-aux-distances-surestimées) et les [résultats à 4 CPU](14-proximite-urbaine.md) distinguent les alertes obtenues des distances physiques encore à valider. Les libellés de régions de `depth_anything_metric` restent distincts des classes d’objets ; les distances simulées du mock servent uniquement à vérifier le comportement applicatif.
 
 Une absence d’alerte peut venir d’une distance inconnue, d’un seuil de confiance insuffisant, d’une zone non observée, d’un échec du modèle, d’une image périmée ou d’une rupture réseau. Elle n’est donc pas une preuve d’absence d’obstacle.
 
@@ -99,7 +103,7 @@ Les limites de taille, dimensions, âge des captures et longueur des questions b
 
 ```mermaid
 flowchart LR
-    POC[1 — POC actuel<br/>contrats + mocks + persistance] --> Integration[2 — Intégration Pi et iPhone<br/>latence, reprise et audio]
+    POC[1 — POC actuel<br/>vision réelle, alertes et persistance] --> Integration[2 — Intégration Pi et iPhone<br/>latence, reprise et audio]
     Integration --> Vision[3 — Validation de vision réelle<br/>caméra, zones, détecteur]
     Vision --> Product[4 — Sécurité et exploitation<br/>identités, purge, métriques]
     Product --> GenAI[5 — Fonctions GenAI<br/>LLM, contexte et navigation]

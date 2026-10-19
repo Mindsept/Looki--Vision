@@ -1,10 +1,84 @@
 # 04 — Vision, profondeur et proximité
 
-> Pour `yolo_seg_track`, le flux courant sépare le suivi rapide et la profondeur : voir [le chapitre 13](13-profondeur-independante.md). Les parcours synchrones ci-dessous restent applicables aux autres providers et au mode `LOOKI_DECOUPLED_DEPTH=false`.
+> Le profil partagé dans `.env.example` est `yolo_seg_track` : YOLO26n-seg + ByteTrack, avec UniDepthV2 indépendant. La synthèse ci-dessous décrit l’approche actuelle ; les sections suivantes documentent aussi les providers alternatifs et les premiers essais.
 
-Sources Mermaid : [classes vision](diagrams/05-classes-vision.mmd), [fusion urbaine](diagrams/10-vision-urbaine.mmd), [proximité](diagrams/11-proximite.mmd).
+Sources Mermaid : [classes vision](diagrams/05-classes-vision.mmd), [fusion urbaine](diagrams/10-vision-urbaine.mmd), [proximité métrique](diagrams/11-proximite.mmd), [deux cadences](diagrams/15-profondeur-independante.mmd), [proximité visuelle par classe](diagrams/16-proximite-urbaine.mmd).
 
-## Quatre modes, un même contrat métier
+## Approche actuelle face aux distances surestimées
+
+### Problème observé
+
+Sur nos images urbaines et la vidéo NYC, certains objets occupent une grande partie de l’image tandis que la profondeur les situe encore à plusieurs mètres. Un seuil limité à `distance_m <= 1.5` manque alors des situations visuellement préoccupantes. La vidéo ne fournit pas de distances physiques mesurées : elle montre le désaccord entre indices, sans permettre de certifier que la personne se trouve à moins d’un mètre.
+
+Deux difficultés se cumulent. Une caméra monoculaire ne mesure pas directement la distance : l’échelle estimée dépend du modèle, de la scène et des paramètres de caméra, qui ne sont pas encore calibrés sur le Pi. De plus, une boîte rectangulaire peut contenir beaucoup de chaussée ou d’arrière-plan autour d’un objet ; une profondeur calculée dans cette boîte peut concerner le fond. Changer Depth Anything pour UniDepthV2 ne résout pas à lui seul ces deux difficultés.
+
+La réponse implémentée combine **segmentation, suivi temporel et vigilance visuelle**, tout en conservant une profondeur métrique séparée et identifiable. Aucun multiplicateur arbitraire ne corrige les mètres, et aucune taille apparente ne devient automatiquement « 1 m ».
+
+### Deux traitements complémentaires
+
+```mermaid
+flowchart TD
+    Input["JPEG horodaté + session + frame_id"] --> Queue["File bornée : conserver la capture récente"]
+    Queue --> Seg["YOLO26n-seg : classes, boîtes, masques"]
+    Seg --> Track["ByteTrack par session et par classe"]
+    Track --> History["Historique court : taille, surface, bords et visibilité"]
+    History --> Visual["Approche et proximité visuelle<br/>personnes, vélos, voitures"]
+    Visual --> Fast["frame.analyzed<br/>masques, pistes et indices sans mètres"]
+    Visual --> Possible["alert.possible_proximity<br/>selon les règles visuelles"]
+    Seg --> Sample["Copier le JPEG et ses masques complets<br/>environ toutes les 2 secondes"]
+    Sample --> Depth["UniDepthV2 dans un worker indépendant"]
+    Depth --> Mask["Profondeur p20 dans chaque masque source"]
+    Mask --> Slow["frame.depth_analyzed<br/>mètres estimés sur la capture source"]
+    Mask --> Metric["alert.proximity si profondeur admissible ≤ 1,5 m"]
+    Fast --> UI["Front live et événements WebSocket"]
+    Possible --> UI
+    Slow --> UI
+    Metric --> UI
+```
+
+**La segmentation réduit la contamination par le fond.** Pour chaque objet, on utilise les pixels de son masque binaire complet, puis le percentile 20 des profondeurs valides. Il faut au moins 16 pixels valides et 50 % de couverture ; sinon la distance reste inconnue. Les polygones simplifiés affichés dans le front ne servent pas à calculer la profondeur. Un masque erroné ou une profondeur mal estimée restent possibles.
+
+**Le suivi permet de comparer le même objet dans le temps.** ByteTrack associe les observations d’une session, séparément pour chaque classe. Sur une fenêtre d’une seconde, la tendance est calculée à partir des horodatages, avec au moins trois observations sur 350 ms. On utilise une médiane des pentes logarithmiques entre observations pour réduire les variations ponctuelles. Le calcul ne suppose donc pas que toutes les images envoyées à 15 ips sont analysées.
+
+**L’approche visuelle demande plusieurs indices.** Pour une personne, on suit la hauteur ; pour un vélo ou une voiture, `sqrt(largeur × hauteur)` tient aussi compte des objets qui grandissent surtout en largeur. Une taille et une surface de masque croissantes donnent `approaching` ; des diminutions concordantes donnent `receding` seulement si la visibilité n’est pas partielle. Une silhouette coupée au bord ou masquée par un autre objet peut rapetisser sans s’éloigner. Ces états décrivent le mouvement apparent, sans vitesse physique ni temps avant collision.
+
+### Quand déclencher la vigilance
+
+Les règles `urban-visual-v4` combinent dimension relative, surface réelle du masque, croissance, bords touchés et persistance. Le vélo a notamment des seuils de surface plus petits que la voiture, car son cadre et ses roues occupent peu de pixels. Les valeurs exactes et les champs d’explication sont dans [le chapitre 14](14-proximite-urbaine.md#profils-de-taille-apparente).
+
+| Situation observée | Décision |
+| --- | --- |
+| Objet qui grandit mais reste petit | Indiquer une approche ; cela ne suffit pas à déclencher la proximité |
+| Objet imposant, masque suffisamment grand et bord gauche/droite/bas touché | Alerte visuelle immédiate si les seuils de classe et de confiance sont atteints |
+| Objet imposant, piste persistante, croissance ou bord touché | Alerte visuelle après au moins deux observations sur 250 ms |
+| Objet déjà très grand et persistant, sans croissance | Alerte possible même lorsque l’objet ou la caméra est immobile |
+| Risque déjà présent puis observation temporairement faible ou partielle | Conservation bornée à 800 ms depuis le dernier indice fort, sans prolongation par le seul score faible |
+| Profondeur loin ou inconnue mais indices visuels suffisants | Conserver la vigilance `alert.possible_proximity` ; ne pas déclarer la distance sûre |
+| Profondeur admissible à 1,5 m ou moins | `alert.proximity`, indiquant une proximité estimée par le modèle |
+
+Une nouvelle alerte visuelle exige `confidence >= 0.5`. Le détecteur conserve néanmoins les observations à partir de `0.25` pour aider ByteTrack à récupérer une piste ; elles ne créent pas seules une nouvelle alerte. Les doublons de même classe sont filtrés à partir du chevauchement des **boîtes et des masques**, ce qui évite d’éliminer deux silhouettes distinctes simplement parce que leurs boîtes se recouvrent.
+
+L’événement visuel est émis à l’entrée du risque puis au plus toutes les deux secondes pour une même piste en risque persistant. Un changement d’identifiant peut produire une nouvelle alerte. Ce mécanisme limite les répétitions sans attendre un nombre de mètres fiable.
+
+```mermaid
+flowchart LR
+    Visual["Indices visuels suffisants"] --> Warning["Proximité possible<br/>classe + direction + motifs"]
+    Far["Profondeur estimée loin ou inconnue"] -. "ne supprime pas la vigilance" .-> Warning
+    Near["Profondeur admissible ≤ seuil proche"] --> Metric["Alerte de proximité métrique"]
+    Nothing["Pas de signal exploitable"] --> Unknown["Aucune alerte<br/>absence de danger non démontrée"]
+```
+
+Exemple de restitution : « Proximité possible : voiture à gauche. Vigilance visuelle, distance incertaine. » Le front montre la classe, la piste, l’approche, les motifs et le score ; le panneau de profondeur reste lié à sa capture source. Une valeur ancienne n’est pas collée sur un objet plus récent. Dans ce mode, `frame.analyzed` contient les indices visuels et des distances nulles ; la profondeur arrive séparément dans `frame.depth_analyzed` avec son `frame_id` d’origine.
+
+### Pourquoi calculer moins souvent la profondeur
+
+Le budget est de **4 CPU**, avec deux threads par modèle. La profondeur est plus lente que YOLO : l’exécuter sur chaque capture ralentissait aussi le suivi et les alertes visuelles. Un worker séparé traite au plus un calcul de profondeur à la fois, avec un intervalle de soumission de deux secondes. Il réutilise le JPEG exact et les masques de cette capture. Une capture devenue trop vieille, au-delà de trois secondes, est rejetée pour la profondeur sans annuler son résultat visuel. Voir [le chapitre 13](13-profondeur-independante.md) pour les classes, les transactions et la reprise.
+
+Le profil actuel utilise une entrée YOLO de 768 pixels et un seuil de détection à 0,25 pour conserver davantage de candidats. Sur le même clip NYC de 45,06 s, avec le quota Docker de 4 CPU, il a analysé **8,54 ips**, avec **107 ms** de vision médiane et **1 191 ms** de profondeur médiane : 18 événements visuels (14 personnes, 4 voitures), aucune alerte métrique à 1,5 m et aucune erreur de traitement. L’envoi à 15 ips reste une cadence d’entrée ; les images en attente remplacées ne sont pas analysées plus tard.
+
+Ces essais vérifient que les alertes fonctionnent même sans franchissement du seuil métrique, sans établir une précision physique des distances ni un rappel de détection. La vidéo NYC ne valide pas de trajectoire réelle de vélo ; une photo de vélos valide séparément le déclenchement, et des séquences synthétiques testent les règles temporelles. Les [résultats détaillés](14-proximite-urbaine.md#résultats-sur-nyc-quota-de-4-cpu) distinguent ces preuves. La calibration du Pi, les distances mesurées, les mouvements de caméra, les occlusions et les erreurs d’association restent à évaluer.
+
+## Cinq modes, un même contrat métier
 
 ```mermaid
 classDiagram
@@ -86,8 +160,9 @@ Le champ `simulated` permet au mobile et aux outils de démonstration de disting
 | `depth_anything_metric` | Trois régions fixes, `observation_type: region` | Depth Anything V2 Metric Indoor Small |
 | `urban_objects` | Classes et boîtes d’objets, `observation_type: object` | RT-DETR R18 + moteur de profondeur configurable |
 | `yolo_objects` | Classes et boîtes d’objets, `observation_type: object` | YOLO26 Nano + moteur de profondeur configurable |
+| `yolo_seg_track` | Classes, masques, pistes et indices visuels, `observation_type: object` | YOLO26 Nano Segmentation + ByteTrack ; profil partagé avec UniDepthV2 indépendant |
 
-Lorsque `LOOKI_DEPTH_MODEL_ID` est vide ou absent, chaque provider choisit son checkpoint par défaut. Dans `urban_objects` et `yolo_objects`, `LOOKI_DEPTH_BACKEND=depth_anything` choisit Outdoor Small et `LOOKI_DEPTH_BACKEND=unidepth_v2` choisit `lpiccinelli/unidepth-v2-vits14`. Une valeur explicite remplace ce choix. La distinction `observation_type` évite de présenter une zone générique comme un objet reconnu.
+`yolo_objects` et `yolo_seg_track` utilisent tous deux la classe `YoloObjectsProvider`, avec l’option `segment=True` pour le second ; le suivi est enrichi par `PerceptionService`. Lorsque `LOOKI_DEPTH_MODEL_ID` est vide ou absent, chaque provider choisit son checkpoint par défaut. Pour les trois providers objets, `LOOKI_DEPTH_BACKEND=depth_anything` choisit Outdoor Small et `LOOKI_DEPTH_BACKEND=unidepth_v2` choisit `lpiccinelli/unidepth-v2-vits14`. Une valeur explicite remplace ce choix. La distinction `observation_type` évite de présenter une zone générique comme un objet reconnu.
 
 ## Simulation reproductible
 
@@ -180,7 +255,7 @@ flowchart LR
     Objects --> Rules[Politique de proximité existante]
 ```
 
-Les boîtes sont normalisées pour échantillonner la carte de profondeur à sa résolution native. Les pixels non finis, nuls, négatifs ou dépassant la portée du checkpoint sont exclus. Si moins de `50 %` des pixels sont valides, l’objet reste présent avec une distance `null`. Le détecteur doit atteindre `LOOKI_OBJECT_CONFIDENCE_THRESHOLD`, fixé à `0.5` par défaut.
+Les boîtes sont normalisées pour échantillonner la carte de profondeur à sa résolution native. Les pixels non finis, nuls, négatifs ou dépassant la portée du checkpoint sont exclus. Si moins de `50 %` des pixels sont valides, l’objet reste présent avec une distance `null`. Le détecteur doit atteindre `LOOKI_OBJECT_CONFIDENCE_THRESHOLD` : `0.5` dans les premières campagnes RT-DETR, `0.25` dans le profil YOLO partagé actuel.
 
 Pour les objets, `confidence` désigne le score de détection et `depth_valid_fraction` la couverture de profondeur valide. Les libellés restent des classes anglaises normalisées, telles que `person`, `bicycle`, `car` ou `bus`. La boîte n’est pas un masque de segmentation : les pixels de fond et les occlusions peuvent fausser la distance. Les poteaux, bordures et autres catégories absentes du vocabulaire peuvent rester invisibles au système.
 
@@ -202,7 +277,9 @@ Les résultats HTTP et `frame.analyzed` contiennent un objet `timing_ms`. Avec D
 
 Les mesures utilisent une horloge monotone. Les périphériques CUDA/MPS sont synchronisés quand ils sont utilisés, afin de mesurer l’exécution et pas seulement la soumission d’un calcul. Le chargement des poids au démarrage est exclu. `latency_ms` reste la durée du worker et le délai HTTP → WebSocket reste une mesure client séparée ; aucun de ces champs ne mesure la sortie audio.
 
-## Politique de proximité
+## Politique de proximité métrique
+
+Cette politique classe les mètres estimés. Les alertes **visuelles** décrites plus haut ont leur propre décision et leur propre temporisation ; une classification métrique `far` ne suffit pas à les annuler.
 
 ```mermaid
 flowchart TD
@@ -252,7 +329,7 @@ flowchart LR
     Existing --> WS[Contrat mobile existant]
 ```
 
-La fusion objet/profondeur est livrée dans `urban_objects`. Elle peut ensuite être améliorée avec une segmentation et un détecteur couvrant davantage d’obstacles. Pour un modèle vidéo, conserver un état temporel par session et définir les règles de remise à zéro, d’ordre des images et de consommation mémoire. La version actuelle traite des JPEG indépendants ; elle ne suit pas un objet d’une image à l’autre et n’estime pas la vitesse d’approche.
+La fusion par boîtes reste disponible dans `urban_objects` et `yolo_objects`. La segmentation et le suivi temporel sont désormais livrés dans `yolo_seg_track`, avec un historique borné par session et des règles de remise à zéro. Les entrées restent des JPEG ; leur suivi ne constitue pas une estimation de vitesse physique. Les suites envisagées portent sur la calibration de la caméra finale, la validation sur distances mesurées et la couverture d’obstacles absents des classes actuelles.
 
 ## Validation physique à réaliser
 
@@ -271,4 +348,4 @@ Les tests automatisés, les fixtures et une inférence sur des photographies san
 
 ## Segmentation et suivi
 
-Le provider `yolo_seg_track` ajoute YOLO26n-seg, l’échantillonnage dans les masques, ByteTrack et `alert.possible_proximity`. Les règles métriques précédentes restent inchangées. Voir [le chapitre 12](12-segmentation-suivi.md) pour les classes, la décision sur indices contradictoires et les limites.
+Le provider `yolo_seg_track` ajoute YOLO26n-seg, l’échantillonnage dans les masques, ByteTrack et `alert.possible_proximity`. Les règles métriques précédentes restent inchangées. Le [chapitre 12](12-segmentation-suivi.md) décrit la première version synchrone ; les [chapitres 13](13-profondeur-independante.md) et [14](14-proximite-urbaine.md) décrivent la séparation des cadences et les profils actuels pour personnes, vélos et voitures.

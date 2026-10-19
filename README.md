@@ -9,7 +9,7 @@ flowchart LR
     Pi["Raspberry Pi — JPEG horodatés"] -->|POST multipart| API["FastAPI — contrôleurs et services"]
     API --> DB[(PostgreSQL)]
     DB --> Worker["Worker visuel et worker profondeur indépendant"]
-    Worker --> Vision["YOLO26n / RT-DETR et profondeur métrique<br/>ou provider mock"]
+    Worker --> Vision["YOLO26n-seg + ByteTrack<br/>et profondeur UniDepthV2"]
     Vision --> Worker
     Worker -->|Résultats et alertes| DB
     API <-->|Un WebSocket| Phone["iPhone — STT et TTS"]
@@ -18,16 +18,28 @@ flowchart LR
 
 ## Démarrer avec Docker
 
-Prérequis : Docker avec Compose. Si le terminal est dans `LOOKi/`, entrer d’abord dans `backend/`.
+Prérequis : Docker avec Compose, un accès Internet au premier lancement et au moins 4 CPU / 6 Gio disponibles pour le conteneur backend, en plus de PostgreSQL. Si le terminal est dans `LOOKi/`, entrer d’abord dans `backend/`.
 
 ```bash
 test -f .env || cp .env.example .env
 docker compose up --build -d
+docker compose logs -f backend
+```
+
+**Le profil de `.env.example` active directement la vision réelle** : YOLO26n-seg pour la segmentation, ByteTrack pour le suivi et UniDepthV2 ViT-S/14 pour la profondeur. Le build installe les bibliothèques ML ; **les poids des modèles se téléchargent automatiquement au démarrage du backend, lors du premier `compose up`**, sans installation Python ni téléchargement manuel sur l’hôte.
+
+Le premier lancement est donc plus long. Attendre `Application startup complete` dans les logs, puis quitter leur suivi avec `Ctrl+C` (les conteneurs restent actifs) et vérifier :
+
+```bash
 docker compose ps
 curl --fail http://127.0.0.1:8000/health/ready
 ```
 
-Le fichier d’exemple sélectionne `mock`, sans poids de modèle. Un `.env` existant conserve ses réglages de vision réelle. Compose construit depuis `.` et monte `./calibration/` ; il applique les migrations Alembic avant de démarrer l’API et son worker. PostgreSQL reste sur le réseau Docker interne. Le nom de projet `looki` conserve les volumes existants après le déplacement du Compose.
+Les poids résident dans le volume Docker **`looki_model_cache`**, monté dans le conteneur à `/home/looki/.cache/huggingface`. Ils ne sont pas versionnés dans Git. Chaque ordinateur remplit son propre cache au premier démarrage ; les lancements suivants réutilisent ces fichiers. **`docker compose down` conserve le cache et la base** ; supprimer leurs volumes supprime ces données, et un cache vide oblige à retélécharger les modèles. Les révisions des modèles sont figées dans le code.
+
+La commande de copie préserve un `.env` existant. Si celui-ci utilise encore `mock`, appliquer le [profil réel et ses réglages CPU](docs/05-installation-et-exploitation.md#profil-réel-partagé-et-téléchargement-des-modèles), puis relancer `docker compose up --build -d`. Sans copie de `.env.example`, les valeurs de repli de Compose restent en mode mock. Le contexte des centres reste fictif (`LOOKI_CENTRES_PROVIDER=mock`) jusqu’au branchement du service d’Hugo.
+
+Compose applique les migrations Alembic avant de charger les modèles et de démarrer l’API et ses workers. PostgreSQL reste sur le réseau Docker interne.
 
 - [Interface vidéo réelle](http://127.0.0.1:8000/live/) : masques, suivi des objets, mètres estimés et alertes de proximité possible ; [configuration et règles actuelles](docs/14-proximite-urbaine.md).
 - [Swagger HTTP](http://127.0.0.1:8000/docs) et [OpenAPI](http://127.0.0.1:8000/openapi.json).
@@ -36,14 +48,16 @@ Le fichier d’exemple sélectionne `mock`, sans poids de modèle. Un `.env` exi
 
 ```bash
 docker compose logs --tail=100 backend
-docker compose stop
+docker compose down
 ```
 
-`stop` arrête les services et conserve les données. Voir le [guide d’exploitation](docs/05-installation-et-exploitation.md) pour les paramètres, les modèles, les migrations et le diagnostic.
+`down` arrête et retire les conteneurs ; les volumes persistent. Voir le [guide d’exploitation](docs/05-installation-et-exploitation.md) pour les paramètres, les modèles, les migrations et le diagnostic.
 
 ## Démonstration
 
-Avec `LOOKI_VISION_PROVIDER=mock` :
+Pour tester la vision réelle, ouvrir [/live/](http://127.0.0.1:8000/live/), renseigner la clé API locale et choisir une vidéo sur son ordinateur. Le navigateur envoie les JPEG au backend ; les masques, pistes, estimations de profondeur et alertes proviennent des modèles exécutés dans le conteneur. La vidéo NYC utilisée pour nos essais est privée et n’est pas fournie dans le dépôt. Le champ `LOOKI_DEMO_VIDEO_PATH` peut rester vide pour le choix d’un fichier local.
+
+Pour une démonstration déterministe du protocole, passer explicitement `LOOKI_VISION_PROVIDER=mock` dans `.env`, recréer le backend avec `docker compose up -d`, puis lancer :
 
 ```bash
 docker compose exec backend python scripts/demo.py --base-url http://127.0.0.1:8000
@@ -105,6 +119,8 @@ Le [sommaire détaillé](docs/README.md) décrit les choix et leurs limites. Les
 ## Vision réelle et alertes
 
 `yolo_seg_track` active **YOLO26n-seg + ByteTrack**, avec **UniDepthV2 toutes les 2 secondes** dans un traitement indépendant. Le suivi des personnes, vélos et voitures exploite la croissance de taille et la surface du masque pour signaler une approche ou une proximité possible. Un rétrécissement dû à une visibilité partielle ne supprime pas immédiatement la vigilance. Les mètres restent attachés à leur capture source, consultable séparément dans le front.
+
+Cette approche répond aux objets visuellement proches dont la profondeur est surestimée : **`alert.possible_proximity` peut être émis même si les mètres estimés sont lointains ou inconnus**. La segmentation réduit les pixels de fond dans l’estimation ; le suivi fournit un signal visuel complémentaire, sans transformer arbitrairement la taille à l’écran en mètres. Voir [le problème, les choix et le schéma de décision](docs/04-vision-et-proximite.md#approche-actuelle-face-aux-distances-surestimées).
 
 La campagne de référence v3 (640 pixels, seuil 0,50) sur les 45 secondes de la vidéo NYC, sous quota Docker **4 CPU**, mesurait : **13,1 images analysées/s**, **69 ms** de vision en médiane, 21 échantillons de profondeur et 14 événements de proximité possible ; aucune erreur. Les modèles tournent avec 2 threads chacun. Le profil v4 utilise 768 pixels et un seuil de détection à 0,25, avec des alertes nouvelles à 0,50 ; il mesure **8,54 ips**, avec **14 alertes personnes et 4 alertes voitures**, sans erreur. Le test réel complémentaire sur photo déclenche aussi une alerte vélo. [Résultats et compromis](docs/14-proximite-urbaine.md). Ces chiffres locaux ARM64 ne prédisent pas ceux d’une autre VM et les alertes ne prouvent pas des distances physiques. [Architecture, résultats et limites](docs/13-profondeur-independante.md).
 

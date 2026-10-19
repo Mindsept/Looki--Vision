@@ -26,7 +26,7 @@ flowchart TD
 | [01 — Architecture](01-architecture.md) | Déploiement, couches, classes, dépendances, traitements | Toute l’équipe |
 | [02 — Données](02-base-de-donnees.md) | Relations, tables, contraintes, transactions, reprise | Backend principal, centres |
 | [03 — Contrats et flux](03-contrats-et-flux.md) | API HTTP, WebSocket, idempotence, événements, reconnexion | Embedded, iPhone, backend |
-| [04 — Vision et proximité](04-vision-et-proximite.md) | Mock, profondeur métrique, objets urbains, seuils, limites | Backend, Embedded, Hardware |
+| [04 — Vision et proximité](04-vision-et-proximite.md) | Distances surestimées, segmentation, suivi, indices visuels, profondeur et limites | Backend, Embedded, Hardware |
 | [05 — Exploitation](05-installation-et-exploitation.md) | Compose, configuration, migrations, tests, incidents | Backend, démonstration |
 | [06 — Intégration](06-integration-equipe.md) | Travail indépendant, scénarios d’acceptation, branchements | Toute l’équipe |
 | [07 — Décisions](07-decisions-et-limites.md) | Justification des choix et travail restant | PO, équipe technique |
@@ -48,7 +48,7 @@ La racine de toutes les commandes est désormais le **dépôt `backend/`** : `co
 
 ## Parcours conseillé
 
-Pour lancer une démonstration, commencer par le [README du dépôt](../README.md), puis le guide d’exploitation. Pour connecter le Pi ou l’iPhone, lire les contrats et le guide d’intégration. Pour remplacer les simulations, lire l’architecture et le chapitre vision avant de modifier un provider.
+Pour lancer une démonstration, commencer par le [README du dépôt](../README.md), puis le guide d’exploitation. Pour connecter le Pi ou l’iPhone, lire les contrats et le guide d’intégration. Pour comprendre l’approche face aux distances surestimées, lire le chapitre vision, puis les chapitres 13 et 14 pour les règles et leurs mesures.
 
 ```mermaid
 flowchart LR
@@ -62,4 +62,4 @@ flowchart LR
     Phone --> Headphones[Écouteurs]
 ```
 
-Le mode proposé par `.env.example` produit des observations simulées afin de démontrer tout le protocole sans matériel ni poids de modèle. La configuration locale `.env` peut activer le provider réel. Une distance simulée ne mesure pas une scène réelle. La profondeur métrique est une estimation monoculaire à valider sur la caméra et l’environnement retenus ; ce POC ne garantit pas l’évitement d’obstacles.
+Le profil de `.env.example` active la vision réelle **YOLO26n-seg + ByteTrack + UniDepthV2**, sur CPU. Copier cet exemple dans `.env` avant le premier `compose up --build` : les poids se téléchargent au démarrage et restent dans le volume Docker `looki_model_cache`. Le mode vision `mock` reste disponible explicitement pour tester le protocole ; le contexte des centres reste simulé par défaut. La profondeur métrique est une estimation monoculaire à valider sur la caméra et l’environnement retenus ; la vigilance visuelle ne certifie pas une distance physique.

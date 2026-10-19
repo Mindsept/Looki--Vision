@@ -43,7 +43,7 @@ stateDiagram-v2
 
 ## Détection et suivi
 
-Le profil local utilise le même modèle Nano et les mêmes poids figés, avec `LOOKI_YOLO_IMAGE_SIZE=768` et `LOOKI_OBJECT_CONFIDENCE_THRESHOLD=0.25`. Le seuil d’une **nouvelle** alerte reste `LOOKI_MIN_CONFIDENCE=0.5`. Les détections faibles sont visibles avec leur score et la mention « à confirmer » si elles ne sont pas associées à une piste.
+Le profil partagé dans `.env.example` utilise le même modèle Nano et les mêmes poids figés, avec `LOOKI_YOLO_IMAGE_SIZE=768` et `LOOKI_OBJECT_CONFIDENCE_THRESHOLD=0.25`. Il s’active après copie vers `.env` ; les modèles se téléchargent au premier démarrage. Voir [le guide de lancement](05-installation-et-exploitation.md#profil-réel-partagé-et-téléchargement-des-modèles) et [la justification de l’approche](04-vision-et-proximite.md#approche-actuelle-face-aux-distances-surestimées). Le seuil d’une **nouvelle** alerte reste `LOOKI_MIN_CONFIDENCE=0.5`. Les détections faibles sont visibles avec leur score et la mention « à confirmer » si elles ne sont pas associées à une piste.
 
 ByteTrack reçoit désormais les observations entre 0,25 et 0,50, précédemment retirées avant le suivi. Elles peuvent récupérer une piste existante ; le seuil de création de piste reste 0,50. Ce comportement correspond à l’association en deux étapes décrite dans la [documentation Ultralytics](https://docs.ultralytics.com/modes/track/#shared-tracker-arguments). Une observation faible associée peut conserver le risque existant pendant la fenêtre de 800 ms ; elle ne crée pas et ne prolonge pas cette fenêtre.
 
@@ -65,13 +65,14 @@ Le frontend propose des filtres d’alertes « Toutes », « Personnes », « V�
 ## Reproduire
 
 ```bash
+test -f .env || cp .env.example .env
 docker compose up -d --build
 uv run scripts/test_live_video.py --video media/night-walk.mp4 --output output/nyc-urban-v4/final
 uv run pytest -q
 npm --prefix frontend test
 ```
 
-Le rapport distingue les observations, approches et événements d’alerte par classe. Un événement peut concerner plusieurs classes ; les compteurs par classe ne sont donc pas toujours additionnables. Le nombre d’observations ne mesure pas le rappel ou la précision d’un détecteur sans annotations de référence.
+Attendre que le backend soit prêt et fournir la vidéo privée à `media/night-walk.mp4` avant l’évaluation. Un `.env` existant doit correspondre au profil partagé pour reproduire ces réglages. Le rapport distingue les observations, approches et événements d’alerte par classe. Un événement peut concerner plusieurs classes ; les compteurs par classe ne sont donc pas toujours additionnables. Le nombre d’observations ne mesure pas le rappel ou la précision d’un détecteur sans annotations de référence.
 
 ## Résultats sur NYC, quota de 4 CPU
 
