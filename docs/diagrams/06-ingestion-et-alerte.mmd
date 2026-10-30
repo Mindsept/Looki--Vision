@@ -10,9 +10,9 @@ sequenceDiagram
     participant WS as Contrôleur WebSocket
     participant Phone as iPhone
     Note over Pi,Phone: Session créée et WebSocket authentifié déjà ouvert
-    Pi->>HTTP: POST /api/v1/sessions/{session_id}/frames<br/>PNG + frame_id + timestamp
+    Pi->>HTTP: POST /api/v1/sessions/{session_id}/frames<br/>JPEG + frame_id + timestamp
     HTTP->>Service: ingest(session_id, frame_id, timestamp, image)
-    Service->>Service: Valider PNG/JPEG, fraîcheur, session et capacité
+    Service->>Service: Valider JPEG, fraîcheur, session et capacité
     Service->>DB: Insérer frame pending sous write_lock, COMMIT
     Service-->>HTTP: FrameRead
     HTTP-->>Pi: 202 Accepted

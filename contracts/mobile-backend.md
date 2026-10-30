@@ -1,4 +1,4 @@
-# Mobile ↔ backend · Contrat v1.1
+# Mobile ↔ backend · Contrat v1.2
 
 **Livré côté backend le 30 octobre 2026.** Ce document remplace la proposition v1 et constitue le contrat d’intégration pour Leandro et Hamza. Les tests automatisés exercent l’API, la base et un transport fournisseur contrôlé. L’audio réel OpenAI → iPhone reste à valider avec une clé et le SDK iOS ; les tests ne prouvent pas ce parcours matériel.
 
@@ -63,7 +63,7 @@ Préparer la lecture et associer localement l’audio à la demande **avant** le
 
 Le texte est final, non vide, limité à 2 000 caractères ; les espaces de bord sont retirés. `playback_ready` doit être `true`. Le serveur vérifie session, appel, époque, sideband et absence de réponse encore audible. Il fige les trois dernières captures **analysées** disponibles avant la réception, âgées de trois secondes maximum. Une ou deux captures donnent un contexte partiel ; zéro donne `unavailable`, sans appel de génération, avec `sound_id: v1.scene_unavailable`.
 
-Le snapshot associe chaque image à ses propres objets et mesures. Une profondeur absente ne bloque pas ; des mètres d’une autre capture ne sont jamais empruntés. Images et JSON sont figés ensemble. La fraîcheur est revérifiée juste avant l’envoi fournisseur ; les nouvelles captures ne modifient pas une demande déjà acceptée. Les images réellement sélectionnées sont transmises en PNG redimensionné à 768 pixels maximum, avec conservation des proportions.
+Le snapshot associe chaque image à ses propres objets et mesures. Une profondeur absente ne bloque pas ; des mètres d’une autre capture ne sont jamais empruntés. Images et JSON sont figés ensemble. La fraîcheur est revérifiée juste avant l’envoi fournisseur ; les nouvelles captures ne modifient pas une demande déjà acceptée. Les images réellement sélectionnées sont transmises en JPEG (qualité 85/100) redimensionné à 768 pixels maximum, avec conservation des proportions.
 
 Exemple de réponse acceptée :
 

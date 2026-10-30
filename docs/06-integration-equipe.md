@@ -28,7 +28,7 @@ sequenceDiagram
     Backend-->>Config: session_id
     Config->>Pi: Fournir URL, clé API et session_id
     loop Cadence de capture configurée sur le Pi
-        Pi->>Pi: Capturer, redimensionner et encoder en PNG
+        Pi->>Pi: Capturer, redimensionner et encoder en JPEG
         Pi->>Pi: Fixer frame_id et timestamp avec fuseau
         Pi->>Backend: POST multipart image, timestamp, frame_id
         alt 202

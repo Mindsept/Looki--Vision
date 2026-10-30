@@ -44,7 +44,10 @@ class FrameRead(BaseModel):
     processed_at: datetime | None
     width: int
     height: int
-    content_type: Literal["image/png", "image/jpeg"] = "image/jpeg"
+    content_type: Literal["image/png", "image/jpeg"] = Field(
+        default="image/jpeg",
+        description="JPEG for new uploads; PNG only for historical captures accepted before v1.2.",
+    )
     provider: str | None
     simulated: bool | None
     description: str | None

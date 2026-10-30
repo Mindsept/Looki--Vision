@@ -389,7 +389,7 @@ def test_worker_queue_is_bounded_but_retries_remain_allowed(client_factory):
 
 @pytest.mark.parametrize(
     "image,media_type,status",
-    [(b"this is not a JPEG", "image/jpeg", 422), (b"not a PNG either", "image/png", 422)],
+    [(b"this is not a JPEG", "image/jpeg", 422), (b"not a PNG either", "image/png", 415)],
 )
 def test_invalid_images_are_rejected_before_enqueue(client, image, media_type, status):
     session_id = create_session(client)

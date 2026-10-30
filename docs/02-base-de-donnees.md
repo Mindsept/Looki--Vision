@@ -32,7 +32,7 @@ erDiagram
         timestamptz processed_at "nullable"
         varchar status
         varchar sha256
-        varchar content_type "image/png ou image/jpeg"
+        varchar content_type "image/jpeg ; PNG historique"
         bytea image
         integer width
         integer height
@@ -149,8 +149,8 @@ Le backend centres demeure la source métier. Le snapshot de contexte rend la se
 | `received_at` | Date serveur d’acceptation |
 | `processed_at` | Date serveur de fin du traitement, si disponible |
 | `status` | `pending`, `processing`, `completed` ou `failed` |
-| `sha256` | Empreinte des octets PNG/JPEG pour contrôler les nouvelles tentatives d’envoi |
-| `image` | Octets PNG/JPEG en `bytea`, chargés explicitement pour l’analyse |
+| `sha256` | Empreinte des octets JPEG pour contrôler les nouvelles tentatives d’envoi |
+| `image` | Octets JPEG en `bytea`, chargés explicitement pour l’analyse |
 | `width`, `height` | Dimensions obtenues en décodant l’image |
 | `provider` | Nom du provider ayant produit l’analyse |
 | `simulated` | Indique un résultat simulé ; `null` avant disponibilité d’un résultat |
@@ -160,7 +160,7 @@ Le backend centres demeure la source métier. Le snapshot de contexte rend la se
 | `timing_ms` | Détail des durées mesurées dans les providers, notamment prétraitement, profondeur, détection et fusion ; objet vide pour les anciennes images |
 | `vision_metadata` | Paramètres et identifiants des modèles associés au résultat, exposés sous le nom `metadata` dans l’API ; objet vide pour les anciennes images |
 
-Stocker les PNG/JPEG dans PostgreSQL simplifie la persistance transactionnelle du POC. Les réponses de consultation ne renvoient pas les octets PNG/JPEG. À cadence continue, cette stratégie fait croître rapidement la base ; aucune suppression automatique n’est active dans cette version.
+Stocker les JPEG dans PostgreSQL simplifie la persistance transactionnelle du POC. Les réponses de consultation ne renvoient pas les octets JPEG. À cadence continue, cette stratégie fait croître rapidement la base ; aucune suppression automatique n’est active dans cette version.
 
 ### Detection
 
@@ -231,7 +231,7 @@ sequenceDiagram
     participant API as Service d’upload
     participant DB as PostgreSQL
     participant Worker
-    API->>DB: Insérer image pending et octets PNG/JPEG
+    API->>DB: Insérer image pending et octets JPEG
     API->>DB: COMMIT
     API-->>API: Réponse 202
     Worker->>DB: Passer l’image en processing
@@ -296,4 +296,8 @@ Migration `d73c9a210bf4`, après `c581a9367e02` : ajout de `frames.content_type`
 | `uq_audio_question_request` | Une question par session et UUID logique |
 | `uq_question_active_media`, index partiel `media_status != 'closed'` | Une seule sortie audio occupée par session |
 
-Les transactions s’achèvent avant chaque opération fournisseur. Un envoi incertain n’est pas rejoué après redémarrage. La fin de génération ne libère pas le média : voir [états et classes](15-mobile-realtime-et-pi.md). Aucune purge automatique n’est livrée ; prévoir la rétention avant des sessions longues en PNG.
+Les transactions s’achèvent avant chaque opération fournisseur. Un envoi incertain n’est pas rejoué après redémarrage. La fin de génération ne libère pas le média : voir [états et classes](15-mobile-realtime-et-pi.md). Aucune purge automatique n’est livrée ; prévoir la rétention avant des sessions longues en JPEG.
+
+### Format de capture v1.2
+
+Les nouveaux uploads sont exclusivement JPEG. La colonne `content_type` et la migration existante sont conservées : les anciennes captures PNG restent restituées telles quelles avec `image/png`. Aucun changement de schéma ni réencodage des données historiques n’est nécessaire. Le modèle reçoit des miniatures JPEG, y compris lorsqu’une capture historique est sélectionnée.

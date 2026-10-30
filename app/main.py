@@ -89,7 +89,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         title="LOOKi Backend",
         version="0.1.0",
         lifespan=lifespan,
-        description="POC : ingestion PNG/JPEG, alertes WSS, questions HTTP et contrôle Realtime. Un processus serveur par déploiement.",
+        description="POC : ingestion JPEG, alertes WSS, questions HTTP et contrôle Realtime. Un processus serveur par déploiement.",
     )
     application.add_middleware(BodyLimitMiddleware, max_bytes=settings.max_request_bytes)
 

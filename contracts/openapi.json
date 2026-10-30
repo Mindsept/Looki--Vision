@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "LOOKi Backend",
-    "description": "POC : ingestion PNG/JPEG, alertes WSS, questions HTTP et contrôle Realtime. Un processus serveur par déploiement.",
+    "description": "POC : ingestion JPEG, alertes WSS, questions HTTP et contrôle Realtime. Un processus serveur par déploiement.",
     "version": "0.1.0"
   },
   "paths": {
@@ -434,7 +434,7 @@
           "Frames"
         ],
         "summary": "Ingest Frame",
-        "description": "Accept a timestamped PNG/JPEG. Reuse frame_id, timestamp and exact bytes on retry.",
+        "description": "Accept a timestamped JPEG. Reuse frame_id, timestamp and exact bytes on retry.",
         "operationId": "ingest_frame_api_v1_sessions__session_id__frames_post",
         "security": [
           {
@@ -511,7 +511,7 @@
             "description": "Image or request exceeds configured limits"
           },
           "415": {
-            "description": "PNG or JPEG required; declared MIME must match bytes"
+            "description": "JPEG required; declared MIME must match bytes"
           },
           "422": {
             "content": {
@@ -974,6 +974,7 @@
           "Live"
         ],
         "summary": "Frame Image",
+        "description": "Return original bytes/MIME, including historical PNG captures accepted before v1.2.",
         "operationId": "frame_image_api_v1_sessions__session_id__frames__frame_id__image_get",
         "security": [
           {
@@ -2622,7 +2623,7 @@
             "type": "string",
             "contentMediaType": "application/octet-stream",
             "title": "Image",
-            "description": "PNG RGB 8-bit, non-animated (image/png); JPEG accepted for compatibility."
+            "description": "Decodable JPEG image (image/jpeg). PNG is rejected."
           },
           "latest_only": {
             "type": "boolean",
@@ -2951,6 +2952,7 @@
               "image/jpeg"
             ],
             "title": "Content Type",
+            "description": "JPEG for new uploads; PNG only for historical captures accepted before v1.2.",
             "default": "image/jpeg"
           },
           "provider": {

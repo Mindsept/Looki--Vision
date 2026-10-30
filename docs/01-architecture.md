@@ -6,11 +6,11 @@ Sources Mermaid : [architecture](diagrams/01-architecture.mmd), [couches](diagra
 
 ## Périmètre et frontières
 
-Le backend reçoit des images PNG indépendantes (JPEG encore accepté pour le diagnostic). Il orchestre un provider de vision, applique une politique de proximité, persiste le résultat et expose les textes à l’application mobile. Le Raspberry Pi utilise l’iPhone comme point d’accès réseau ; il n’appelle pas l’application iOS.
+Le backend reçoit des images JPEG indépendantes. Il orchestre un provider de vision, applique une politique de proximité, persiste le résultat et expose les textes à l’application mobile. Le Raspberry Pi utilise l’iPhone comme point d’accès réseau ; il n’appelle pas l’application iOS.
 
 ```mermaid
 flowchart LR
-    Pi["Raspberry Pi — PNG"] -->|"HTTPS multipart"| API["FastAPI — contrôleurs et services"]
+    Pi["Raspberry Pi — JPEG"] -->|"HTTPS multipart"| API["FastAPI — contrôleurs et services"]
     API --> DB[("PostgreSQL")]
     API --> Vision["YOLO, suivi et profondeur indépendante"]
     Vision --> DB
@@ -190,7 +190,7 @@ backend/                       # Racine du dépôt Git
 
 ```mermaid
 flowchart LR
-    Raw[PNG ou JPEG + horodatage + frame_id] --> Valid[Validation et contrôle de session]
+    Raw[JPEG + horodatage + frame_id] --> Valid[Validation et contrôle de session]
     Valid --> Pending[(Image pending)]
     Pending --> Analysis[Worker + provider vision]
     Context[(Contexte mémorisé<br/>dans la session)] --> Questions[Réponses déterministes<br/>nom et identifiant du centre]
@@ -240,7 +240,7 @@ flowchart LR
         Admin[CRUD centres, lieux et graphe]
     end
     subgraph Backend[Backend principal livré]
-        Ingest[Ingestion PNG et JPEG]
+        Ingest[Ingestion JPEG]
         Infer[Analyse et proximité]
         Notify[Journal et WebSocket]
         Context[Lecture du contexte]

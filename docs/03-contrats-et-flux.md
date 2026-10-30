@@ -2,7 +2,7 @@
 
 Sources Mermaid : [ingestion et alerte](diagrams/06-ingestion-et-alerte.mmd), [questions](diagrams/07-questions-websocket.mmd), [reconnexion](diagrams/08-reconnexion-websocket.mmd).
 
-**Mise à jour du 30 octobre 2026 :** les contrats [Pi PNG](../contracts/raspberry-backend.md), [mobile HTTP](../contracts/mobile-backend.md), [accès](../contracts/session-access.md) et [alertes WSS](../contracts/alerts.md) sont normatifs.
+**Mise à jour du 30 octobre 2026 :** les contrats [Pi JPEG](../contracts/raspberry-backend.md), [mobile HTTP](../contracts/mobile-backend.md), [accès](../contracts/session-access.md) et [alertes WSS](../contracts/alerts.md) sont normatifs.
 
 ## Vue des échanges
 
@@ -22,7 +22,7 @@ sequenceDiagram
     iOS->>API: Ouvrir WS avec after et Bearer
     API-->>iOS: État initial puis journal
     Note over Pi,iOS: Le scénario de démonstration partage le session_id
-    Pi->>API: POST image PNG, frame_id, timestamp
+    Pi->>API: POST image JPEG, frame_id, timestamp
     API->>DB: Image pending
     API-->>Pi: 202 Accepted
     Worker->>DB: Lire et réserver une image
@@ -46,14 +46,14 @@ flowchart TD
     Existing -->|Oui| Equal{Même empreinte et instant ?}
     Equal -->|Oui| Previous[200 — état actuel de l’image existante]
     Equal -->|Non| Conflict[409 — frame_id_conflict]
-    Existing -->|Non| Decode[Décoder et vérifier le vrai PNG ou JPEG]
+    Existing -->|Non| Decode[Décoder et vérifier le vrai JPEG]
     Decode --> Active{Session active ?}
     Active -->|Non| Closed[409 — session_closed]
     Active -->|Oui| Fresh{Capture assez récente ?}
     Fresh -->|Non| Timestamp[422 — invalid_timestamp]
     Fresh -->|Oui| Capacity{Capacité disponible ?}
     Capacity -->|Non| Full[429 — queue_full<br/>Retry-After: 1]
-    Capacity -->|Oui| Save[Persister pending et octets PNG ou JPEG]
+    Capacity -->|Oui| Save[Persister pending et octets JPEG]
     Save --> Accepted[202 — traitement asynchrone]
 ```
 
@@ -68,7 +68,7 @@ sequenceDiagram
     participant Pi
     participant API
     participant DB
-    Pi->>Pi: Générer frame_id, timestamp et PNG une seule fois
+    Pi->>Pi: Générer frame_id, timestamp et JPEG une seule fois
     Pi->>API: Première tentative
     API->>DB: Insérer l’image
     API--xPi: Réponse 202 perdue
@@ -203,7 +203,7 @@ Le backend ne déduit pas encore l’intention de la question. Il retourne les d
 | `404` | Session, image ou centre inconnu | Vérifier les identifiants |
 | `409` | Session fermée ou identité de capture réutilisée différemment | Corriger le parcours ou l’identité de capture |
 | `413` | Trop d’octets ou trop de pixels | Réduire l’image côté Pi |
-| `415` | Format non PNG/JPEG ou MIME différent | Envoyer une vraie image avec le bon MIME |
+| `415` | Format non JPEG ou MIME différent | Envoyer une vraie image avec le bon MIME |
 | `422` | Champs invalides, image illisible ou horodatage hors fenêtre | Corriger la donnée source |
 | `429` | File globale pleine | Respecter `Retry-After: 1` et réduire la cadence |
 | `503` | Contexte centres indisponible ou readiness en échec | Examiner la dépendance concernée |

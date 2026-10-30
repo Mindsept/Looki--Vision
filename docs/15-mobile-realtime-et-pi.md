@@ -1,17 +1,17 @@
-# 15 — Mobile Realtime et ingestion Pi PNG
+# 15 — Mobile Realtime et ingestion Pi JPEG
 
-**État livré le 30 octobre 2026 : backend implémenté, tests automatisés avec fournisseur contrôlé.** L’intégration physique iPhone/WebRTC/OpenAI n’a pas été exécutée : aucune clé Realtime n’est configurée dans cet environnement. Les performances vision mesurées précédemment restent des mesures JPEG sur ARM64 ; elles ne deviennent pas un benchmark PNG ou cloud.
+**État livré le 30 octobre 2026 : backend implémenté, tests automatisés avec fournisseur contrôlé.** L’intégration physique iPhone/WebRTC/OpenAI n’a pas été exécutée : aucune clé Realtime n’est configurée dans cet environnement. Les performances vision mesurées précédemment restent des mesures JPEG sur ARM64 ; elles ne deviennent pas un benchmark du Pi ou de la VM finale.
 
 ## Contrats à partager
 
 | Responsable | Document |
 | --- | --- |
-| Elyes et Hamza | [Pi PNG](../contracts/raspberry-backend.md) : multipart, UUID, capture UTC, cadence et réessais |
+| Elyes et Hamza | [Pi JPEG](../contracts/raspberry-backend.md) : multipart, UUID, capture UTC, cadence et réessais |
 | Leandro et Hamza | [Mobile HTTP](../contracts/mobile-backend.md) : SDP, questions, lecture et annulation |
 | Leandro et Hamza | [Alertes](../contracts/alerts.md) : WSS, sound_id et expiration |
 | Opérateur POC | [Session et jetons](../contracts/session-access.md) : une session, deux capacités |
 
-L’API accepte toujours les JPEG du front de diagnostic. Le Pi envoie du PNG RGB 8 bits, non animé, sans alpha. `frames.content_type` conserve le type d’origine et la restitution `/image` renvoie les mêmes octets.
+L’API accepte toujours les JPEG du front de diagnostic. Le Pi envoie du JPEG, avec une qualité initiale conseillée de 85/100. Les nouveaux PNG sont refusés ; les PNG déjà persistés restent lisibles. `frames.content_type` conserve le type d’origine et la restitution `/image` renvoie les mêmes octets.
 
 ## Une question et deux fins distinctes
 
@@ -34,7 +34,7 @@ sequenceDiagram
     M->>B: POST question, playback_ready true
     B->>DB: Figer 1 à 3 captures analysées et la demande
     B-->>M: 202, état et context_id
-    B->>O: response.create, images PNG et JSON
+    B->>O: response.create, images JPEG et JSON
     O-->>M: Audio WebRTC direct
     O-->>B: response.done
     B->>DB: completed, média encore occupé
@@ -129,6 +129,6 @@ Le contexte métier centres est conservé sur la session, mais le snapshot Realt
 
 ## Validation et travail restant
 
-Tests : PNG exact, type et limites, isolation par session/rôle, rejeu sans double génération, sélection immuable, absence de scène, lecture séquencée, cancellation après fin de génération, délais, perte sideband, redémarrage et fermeture pendant l’ouverture. L’adaptateur est testé avec HTTP/WebSocket contrôlés ; les migrations sont vérifiées sur PostgreSQL 16 par upgrade, comparaison de schéma, downgrade et réapplication.
+Tests : JPEG exact, type et limites, isolation par session/rôle, rejeu sans double génération, sélection immuable, absence de scène, lecture séquencée, cancellation après fin de génération, délais, perte sideband, redémarrage et fermeture pendant l’ouverture. L’adaptateur est testé avec HTTP/WebSocket contrôlés ; les migrations sont vérifiées sur PostgreSQL 16 par upgrade, comparaison de schéma, downgrade et réapplication.
 
-Restent à réaliser : capture caméra Pi, débit PNG et réseau réel, SDK WebRTC iOS, clips vocaux, arbitrage sonore sur écouteurs, négociation et interruptions avec le véritable service OpenAI. Aucun résultat de test automatisé ne prouve que la voix a été entendue sur un téléphone.
+Restent à réaliser : capture caméra Pi, débit JPEG et réseau réel, SDK WebRTC iOS, clips vocaux, arbitrage sonore sur écouteurs, négociation et interruptions avec le véritable service OpenAI. Aucun résultat de test automatisé ne prouve que la voix a été entendue sur un téléphone.

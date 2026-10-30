@@ -63,7 +63,7 @@ async def test_real_adapter_attaches_same_call_and_waits_for_configuration_ack(m
         context_id=uuid4(),
         context={"frames": [{"image_ref": "image-1"}], "question": "Que vois-tu ?"},
     )
-    image = {"type": "input_image", "image_url": "data:image/png;base64,test"}
+    image = {"type": "input_image", "image_url": "data:image/jpeg;base64,test"}
     await provider.generate(socket, q, [image])
     event = socket.sent[-1]
     assert event["type"] == "response.create"
@@ -112,12 +112,12 @@ def test_pi_retry_reuses_bytes_ids_and_capture_timestamp(monkeypatch):
     with httpx.Client(
         base_url="https://looki.example", transport=httpx.MockTransport(handle)
     ) as client:
-        result = send_frame(client, uuid4(), b"png-contents", uuid4(), "2026-10-30T12:00:00Z")
+        result = send_frame(client, uuid4(), b"jpeg-contents", uuid4(), "2026-10-30T12:00:00Z")
     assert result["status"] == "pending"
     # Multipart boundaries can differ; every semantic field and image stays identical.
     for request in requests:
-        assert b"png-contents" in request.content and b"2026-10-30T12:00:00Z" in request.content
-        assert b"image/png" in request.content
+        assert b"jpeg-contents" in request.content and b"2026-10-30T12:00:00Z" in request.content
+        assert b"image/jpeg" in request.content
     assert (
         requests[0].content.split(b'name="frame_id"')[1].split(b"\r\n--")[0]
         == requests[1].content.split(b'name="frame_id"')[1].split(b"\r\n--")[0]
@@ -141,7 +141,27 @@ def test_pi_timeout_reads_same_capture_before_retry():
         base_url="https://looki.example", transport=httpx.MockTransport(handle)
     ) as client:
         assert (
-            send_frame(client, uuid4(), b"png", fid, "2026-10-30T12:00:00Z")["status"]
+            send_frame(client, uuid4(), b"jpeg", fid, "2026-10-30T12:00:00Z")["status"]
             == "completed"
         )
     assert [r.method for r in requests] == ["POST", "GET"]
+
+
+def test_scene_images_are_real_jpeg_with_preserved_aspect_ratio():
+    import base64
+    import io
+
+    from PIL import Image
+
+    from app.services.scene_context import image_input
+
+    original = io.BytesIO()
+    Image.new("RGB", (1600, 900), (20, 120, 200)).save(original, format="PNG")
+    result = image_input(original.getvalue())
+    assert result["image_url"].startswith("data:image/jpeg;base64,")
+    data = base64.b64decode(result["image_url"].split(",", 1)[1])
+    with Image.open(io.BytesIO(data)) as image:
+        assert image.format == "JPEG"
+        assert image.mode == "RGB"
+        assert image.size == (768, 432)
+        image.load()

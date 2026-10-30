@@ -21,17 +21,11 @@ def inspect_image(data: bytes, max_pixels: int, content_type: str | None) -> tup
         with warnings.catch_warnings():
             warnings.simplefilter("error", Image.DecompressionBombWarning)
             with Image.open(io.BytesIO(data)) as image:
-                if image.format not in {"JPEG", "PNG"}:
-                    raise DomainError(
-                        415, "unsupported_image_type", "Une image PNG ou JPEG est requise."
-                    )
+                if image.format != "JPEG":
+                    raise DomainError(415, "unsupported_image_type", "Une image JPEG est requise.")
                 detected_type = Image.MIME[image.format]
                 if content_type is not None and content_type != detected_type:
                     raise DomainError(415, "image_type_mismatch", "MIME et format réel différents.")
-                if image.format == "PNG" and (
-                    image.mode != "RGB" or image.n_frames != 1 or data[24] != 8
-                ):
-                    raise DomainError(422, "invalid_png", "PNG RGB 8 bits non animé requis.")
                 if image.width * image.height > max_pixels:
                     raise DomainError(
                         413, "image_dimensions_exceeded", "Image trop grande en pixels."
@@ -41,7 +35,7 @@ def inspect_image(data: bytes, max_pixels: int, content_type: str | None) -> tup
                 image.load()  # JPEG verify() alone does not catch every truncated pixel stream.
                 return *image.size, detected_type
     except (UnidentifiedImageError, OSError, SyntaxError, ValueError) as exc:
-        raise DomainError(422, "invalid_image", "Image PNG ou JPEG invalide ou tronquée.") from exc
+        raise DomainError(422, "invalid_image", "Image JPEG invalide ou tronquée.") from exc
     except (Image.DecompressionBombError, Image.DecompressionBombWarning) as exc:
         raise DomainError(413, "image_dimensions_exceeded", "Image trop grande en pixels.") from exc
 

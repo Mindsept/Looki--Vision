@@ -43,7 +43,7 @@ async def close_session(session_id: UUID, request: Request):
         200: {"model": FrameRead, "description": "Exact retry of an existing frame"},
         409: {"description": "Closed session or conflicting frame_id"},
         413: {"description": "Image or request exceeds configured limits"},
-        415: {"description": "PNG or JPEG required; declared MIME must match bytes"},
+        415: {"description": "JPEG required; declared MIME must match bytes"},
         429: {"description": "Analysis queue full; Retry-After: 1"},
     },
     tags=["Frames"],
@@ -55,17 +55,15 @@ async def ingest_frame(
     frame_id: UUID = Form(...),
     timestamp: datetime = Form(...),
     image: UploadFile = File(
-        ..., description="PNG RGB 8-bit, non-animated (image/png); JPEG accepted for compatibility."
+        ..., description="Decodable JPEG image (image/jpeg). PNG is rejected."
     ),
     latest_only: bool = Form(default=False),
 ):
-    """Accept a timestamped PNG/JPEG. Reuse frame_id, timestamp and exact bytes on retry."""
+    """Accept a timestamped JPEG. Reuse frame_id, timestamp and exact bytes on retry."""
     runtime = request.app.state.runtime
     try:
-        if image.content_type not in {"image/png", "image/jpeg"}:
-            raise DomainError(
-                415, "unsupported_image_type", "Content-Type image/png ou image/jpeg requis."
-            )
+        if image.content_type != "image/jpeg":
+            raise DomainError(415, "unsupported_image_type", "Content-Type image/jpeg requis.")
         data = await image.read(runtime.settings.max_image_bytes + 1)
     finally:
         await image.close()
@@ -118,6 +116,7 @@ async def websocket_ticket(session_id: UUID, request: Request):
     },
 )
 async def frame_image(session_id: UUID, frame_id: UUID, request: Request):
+    """Return original bytes/MIME, including historical PNG captures accepted before v1.2."""
     image, content_type = await request.app.state.runtime.frames.image(session_id, frame_id)
     return Response(image, media_type=content_type, headers={"Cache-Control": "no-store"})
 

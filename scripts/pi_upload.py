@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Upload one real PNG capture with bounded, byte-identical retries (Pi contract v1)."""
+"""Upload one real JPEG capture with bounded, byte-identical retries (Pi contract v1.2)."""
 
 import argparse
 import json
@@ -20,7 +20,7 @@ def send_frame(client, session_id, image, frame_id, timestamp, attempts=3):
         delay = min(2**attempt, 4)
         try:
             response = client.post(
-                path, data=fields, files={"image": ("capture.png", image, "image/png")}
+                path, data=fields, files={"image": ("capture.jpg", image, "image/jpeg")}
             )
             if response.status_code in {200, 202}:
                 return response.json()
@@ -59,8 +59,8 @@ def main():
     if args.frame_id and not args.timestamp:
         parser.error("Un réessai avec --frame-id doit conserver --timestamp.")
     image = args.image.read_bytes()
-    if not image.startswith(b"\x89PNG\r\n\x1a\n"):
-        parser.error("Le fichier doit être un PNG réel.")
+    if not image.startswith(b"\xff\xd8\xff"):
+        parser.error("Le fichier doit être un JPEG réel.")
     frame_id = args.frame_id or uuid4()
     stamp = args.timestamp or datetime.now(UTC).isoformat()
     # This example timestamps a manually supplied file. A camera loop must timestamp at capture.

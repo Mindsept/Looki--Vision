@@ -136,10 +136,10 @@ def image_input(data):
         image = original.convert("RGB")
         image.thumbnail((768, 768))
         out = io.BytesIO()
-        image.save(out, format="PNG")
+        image.save(out, format="JPEG", quality=85)
     return {
         "type": "input_image",
-        "image_url": "data:image/png;base64," + base64.b64encode(out.getvalue()).decode(),
+        "image_url": "data:image/jpeg;base64," + base64.b64encode(out.getvalue()).decode(),
     }
 
 

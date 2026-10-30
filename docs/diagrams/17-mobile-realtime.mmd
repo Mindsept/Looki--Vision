@@ -14,7 +14,7 @@ sequenceDiagram
     M->>B: POST question, playback_ready true
     B->>DB: Figer 1 à 3 captures analysées et la demande
     B-->>M: 202, état et context_id
-    B->>O: response.create, images PNG et JSON
+    B->>O: response.create, images JPEG et JSON
     O-->>M: Audio WebRTC direct
     O-->>B: response.done
     B->>DB: completed, média encore occupé

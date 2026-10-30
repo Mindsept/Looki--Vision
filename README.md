@@ -1,12 +1,12 @@
 # LOOKi — Backend principal
 
-Backend **Python / FastAPI** du prototype de lunettes connectées. Il reçoit les **PNG du Raspberry Pi**, analyse les objets et leur proximité, puis envoie les alertes à l’iPhone en WSS. Les questions transcrites passent en **HTTPS** ; le backend pilote OpenAI Realtime par sideband, tandis que la voix rejoint directement l’iPhone en **WebRTC**. PostgreSQL conserve les captures, événements, appels et demandes audio.
+Backend **Python / FastAPI** du prototype de lunettes connectées. Il reçoit les **JPEG du Raspberry Pi**, analyse les objets et leur proximité, puis envoie les alertes à l’iPhone en WSS. Les questions transcrites passent en **HTTPS** ; le backend pilote OpenAI Realtime par sideband, tandis que la voix rejoint directement l’iPhone en **WebRTC**. PostgreSQL conserve les captures, événements, appels et demandes audio.
 
 Ce dossier est la **racine du dépôt Git** (`LOOKi/backend/` dans le workspace). Toutes les commandes ci-dessous se lancent ici ; aucun fichier du dossier parent n’est nécessaire.
 
 ```mermaid
 flowchart LR
-    Pi["Raspberry Pi — PNG"] -->|"HTTPS multipart"| API["FastAPI — contrôleurs et services"]
+    Pi["Raspberry Pi — JPEG"] -->|"HTTPS multipart"| API["FastAPI — contrôleurs et services"]
     API --> DB[("PostgreSQL")]
     API --> Vision["YOLO, suivi et profondeur indépendante"]
     Vision --> DB
@@ -56,9 +56,9 @@ docker compose down
 
 ## Intégrer le Pi et le mobile
 
-Les contrats v1.1 sont synchronisés avec le dépôt de documentation d’équipe :
+Les contrats v1.2 sont synchronisés avec le dépôt de documentation d’équipe :
 
-- [Raspberry Pi → backend : PNG, cadence, erreurs et réessais](contracts/raspberry-backend.md).
+- [Raspberry Pi → backend : JPEG, cadence, erreurs et réessais](contracts/raspberry-backend.md).
 - [Session partagée et jetons distincts Pi/mobile](contracts/session-access.md).
 - [Mobile : questions HTTP et cycle de vie audio Realtime](contracts/mobile-backend.md).
 - [Alertes WSS, expiration et catalogue des clips](contracts/alerts.md).
@@ -66,7 +66,7 @@ Les contrats v1.1 sont synchronisés avec le dépôt de documentation d’équip
 
 La vision réelle reste le profil par défaut. **Realtime est désactivé tant que vous n’avez pas configuré une clé serveur** : ajouter `LOOKI_REALTIME_ENABLED=true` et `LOOKI_OPENAI_API_KEY` dans le `.env` privé, puis recréer le backend. Modèle initial `gpt-realtime`, voix `marin`. Ne jamais distribuer cette clé aux appareils. Aucun faux audio ne remplace une clé absente : la création d’appel retourne `503`, la vision continue.
 
-L’opérateur crée la session et appelle `/access-tokens` pour transmettre un jeton propre à chaque appareil. Le Pi utilise `scripts/pi_upload.py` pour un premier PNG ; le front `/live/` conserve ses JPEG de diagnostic. La bibliothèque WebRTC iOS, les clips et le test audio physique restent à intégrer côté mobile. Les tests fournisseur automatisés utilisent un transport contrôlé, pas une connexion OpenAI réelle.
+L’opérateur crée la session et appelle `/access-tokens` pour transmettre un jeton propre à chaque appareil. Le Pi utilise `scripts/pi_upload.py` pour un premier JPEG, comme le front `/live/`. La bibliothèque WebRTC iOS, les clips et le test audio physique restent à intégrer côté mobile. Les tests fournisseur automatisés utilisent un transport contrôlé, pas une connexion OpenAI réelle.
 
 ## Démonstration
 

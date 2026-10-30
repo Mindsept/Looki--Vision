@@ -53,7 +53,7 @@ Pour lancer une démonstration, commencer par le [README du dépôt](../README.m
 
 ```mermaid
 flowchart LR
-    Pi["Raspberry Pi — PNG"] -->|"HTTPS multipart"| API["FastAPI — contrôleurs et services"]
+    Pi["Raspberry Pi — JPEG"] -->|"HTTPS multipart"| API["FastAPI — contrôleurs et services"]
     API --> DB[("PostgreSQL")]
     API --> Vision["YOLO, suivi et profondeur indépendante"]
     Vision --> DB

@@ -1,10 +1,10 @@
 # Contrats LOOKi — API v1
 
-**Contrats v1.1 livrés le 30 octobre 2026.** Pour une nouvelle intégration, suivre les interfaces ci-dessous. Les anciennes questions WSS sont réservées au diagnostic opérateur ; le jeton mobile doit utiliser HTTP.
+**Contrats v1.2 livrés le 30 octobre 2026.** Pour une nouvelle intégration, suivre les interfaces ci-dessous. Le Pi envoie du JPEG, également utilisé pour les images transmises au modèle ; les nouveaux PNG sont refusés. Les anciennes questions WSS sont réservées au diagnostic opérateur ; le jeton mobile doit utiliser HTTP.
 
 | Interface | Contrat normatif |
 | --- | --- |
-| Pi, PNG et réessais | [raspberry-backend.md](raspberry-backend.md) |
+| Pi, JPEG et réessais | [raspberry-backend.md](raspberry-backend.md) |
 | Provisionnement et accès | [session-access.md](session-access.md) |
 | Mobile HTTP et audio WebRTC | [mobile-backend.md](mobile-backend.md) |
 | Alertes WSS et clips | [alerts.md](alerts.md) |
@@ -22,7 +22,7 @@ La documentation détaillée du protocole et de la reprise est dans [docs/03-con
 
 ```mermaid
 flowchart LR
-    Pi[Pi] -->|POST multipart PNG| HTTP[API HTTP]
+    Pi[Pi] -->|POST multipart JPEG| HTTP[API HTTP]
     Phone[iPhone] <-->|alertes et événements JSON| WS[WebSocket]
     Phone <-->|questions, état, arrêt| HTTP
     HTTP --> Main[Backend principal]
@@ -54,7 +54,7 @@ L’upload est `multipart/form-data` avec trois parties obligatoires et une opti
 
 | Champ | Format | Règle |
 | --- | --- | --- |
-| `image` | Octets PNG RGB 8 bits, partie `Content-Type: image/png` ; JPEG conservé | Vrai PNG ou JPEG décodable ; défaut maximum `5 MiB` et `12 000 000` pixels |
+| `image` | Octets JPEG, partie `Content-Type: image/jpeg` | Vrai JPEG décodable ; défaut maximum `5 MiB` et `12 000 000` pixels |
 | `timestamp` | Date-heure RFC 3339 avec fuseau | Instant de capture, par exemple `2026-10-14T12:00:00Z` |
 | `frame_id` | UUID | Identifiant créé par le Pi, inchangé pendant les tentatives d’envoi |
 | `latest_only` | Booléen optionnel, défaut `false` | Remplacer les images pending de cette session avant admission ; les captures plus anciennes sont refusées |

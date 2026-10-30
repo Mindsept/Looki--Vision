@@ -1,6 +1,6 @@
 # Session et accès des appareils · Contrat POC v1
 
-**Implémenté le 30 octobre 2026.** Le provisionnement est manuel pour une paire de lunettes. Il complète les contrats [mobile](mobile-backend.md) et [Pi PNG](raspberry-backend.md). Aucun appairage automatique ou compte utilisateur n’est annoncé livré.
+**Implémenté le 30 octobre 2026.** Le provisionnement est manuel pour une paire de lunettes. Il complète les contrats [mobile](mobile-backend.md) et [Pi JPEG](raspberry-backend.md). Aucun appairage automatique ou compte utilisateur n’est annoncé livré.
 
 ## Créer et partager la même session
 

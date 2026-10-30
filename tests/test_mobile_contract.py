@@ -163,43 +163,71 @@ def emit(client, provider, kind, status="completed"):
     client.portal.call(generated["socket"].events.put, event)
 
 
-def png(mode="RGB"):
+def encoded_image(format="JPEG", mode="RGB"):
     stream = io.BytesIO()
-    Image.new(mode, (64, 48)).save(stream, format="PNG")
+    Image.new(mode, (64, 48)).save(stream, format=format)
     return stream.getvalue()
 
 
-def test_png_ingestion_roundtrip_retry_and_invalid_formats(client_factory):
+def test_jpeg_ingestion_roundtrip_retry_and_invalid_formats(client_factory):
     client = client_factory()
     sid = create_session(client)
     fid, stamp = str(uuid4()), datetime.now(UTC).isoformat()
-    original = png()
+    original = encoded_image()
     response = upload(
-        client, sid, image=original, media_type="image/png", frame_id=fid, timestamp=stamp
+        client, sid, image=original, media_type="image/jpeg", frame_id=fid, timestamp=stamp
     )
     assert response.status_code == 202
-    assert response.json()["content_type"] == "image/png"
+    assert response.json()["content_type"] == "image/jpeg"
     wait_for_event(client, sid, "frame.analyzed", frame_id=fid)
     returned = client.get(f"/api/v1/sessions/{sid}/frames/{fid}/image")
-    assert returned.content == original and returned.headers["content-type"] == "image/png"
+    assert returned.content == original and returned.headers["content-type"] == "image/jpeg"
     client.post(f"/api/v1/sessions/{sid}/close")
     assert (
         upload(
-            client, sid, image=original, media_type="image/png", frame_id=fid, timestamp=stamp
+            client, sid, image=original, media_type="image/jpeg", frame_id=fid, timestamp=stamp
         ).status_code
         == 200
     )
     assert (
         upload(
-            client, sid, image=original, media_type="image/jpeg", frame_id=fid, timestamp=stamp
+            client, sid, image=original, media_type="image/png", frame_id=fid, timestamp=stamp
         ).status_code
         == 415
     )
     other = create_session(client)
-    assert upload(client, other, image=original, media_type="image/jpeg").status_code == 415
-    assert upload(client, other, image=png("RGBA"), media_type="image/png").status_code == 422
-    assert upload(client, other, image=original[:40], media_type="image/png").status_code == 422
+    # Check declared MIME and actual encoding independently.
+    assert (
+        upload(client, other, image=encoded_image("PNG"), media_type="image/png").status_code == 415
+    )
+    assert (
+        upload(client, other, image=encoded_image("PNG"), media_type="image/jpeg").status_code
+        == 415
+    )
+    assert upload(client, other, image=original[:40], media_type="image/jpeg").status_code == 422
     assert upload(client, other, image=original, media_type="image/gif").status_code == 415
+
+
+def test_historical_png_remains_readable_without_rewriting_stored_bytes(client_factory):
+    from app.models import Frame
+
+    client = client_factory()
+    sid = create_session(client)
+    fid = scene(client, sid)[0]
+    historical = encoded_image("PNG")
+
+    async def restore_historical_capture():
+        runtime = client.app.state.runtime
+        async with runtime.write_lock, runtime.db.sessions() as db, db.begin():
+            row = await db.scalar(select(Frame).where(Frame.frame_id == UUID(fid)))
+            row.image, row.content_type = historical, "image/png"
+
+    client.portal.call(restore_historical_capture)
+    path = f"/api/v1/sessions/{sid}/frames/{fid}"
+    assert client.get(path).json()["content_type"] == "image/png"
+    response = client.get(path + "/image")
+    assert response.headers["content-type"] == "image/png"
+    assert response.content == historical
 
 
 def test_capabilities_isolate_sessions_roles_and_alert_socket(client_factory):
@@ -305,7 +333,7 @@ def test_question_freezes_latest_three_and_retry_never_generates_twice(setup):
     snapshot = copy.deepcopy(generated["context"])
     assert [f["frame_id"] for f in snapshot["frames"]] == frames[-3:]
     assert len(generated["images"]) == 3
-    assert all(i["image_url"].startswith("data:image/png;base64,") for i in generated["images"])
+    assert all(i["image_url"].startswith("data:image/jpeg;base64,") for i in generated["images"])
     assert not snapshot["partial_context"]
     scene(client, sid)
     assert generated["context"] == snapshot

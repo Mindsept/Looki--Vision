@@ -1,6 +1,6 @@
 # 07 — Décisions techniques et limites
 
-**Évolution du 30 octobre 2026 :** PNG pour le Pi, jetons par rôle/session, questions HTTP et audio Realtime direct. Le [chapitre 15](15-mobile-realtime-et-pi.md) et les [contrats](../contracts/README.md) remplacent les choix historiques de question WSS/TTS ci-dessous.
+**Évolution du 30 octobre 2026 :** JPEG pour le Pi, jetons par rôle/session, questions HTTP et audio Realtime direct. Le [chapitre 15](15-mobile-realtime-et-pi.md) et les [contrats](../contracts/README.md) remplacent les choix historiques de question WSS/TTS ci-dessous.
 
 ## Choix retenus
 
@@ -13,11 +13,11 @@ mindmap
       Vision réelle dans le profil partagé
       Mode mock pour tests isolés
     Contrats stables
-      PNG multipart
+      JPEG multipart
       Un WebSocket bidirectionnel
       Exemples JSON et OpenAPI
     Persistance
-      PNG/JPEG dans PostgreSQL
+      JPEG dans PostgreSQL
       File en base
       Événements rejouables
     Remplacement des dépendances
@@ -36,7 +36,7 @@ mindmap
 | FastAPI et Pydantic | Endpoints typés, documentation HTTP, validation | Les messages WebSocket ont besoin d’un contrat complémentaire |
 | Controller / service / repository | Protocole, métier et SQL séparés | Quelques classes supplémentaires, mais des dépendances lisibles |
 | PostgreSQL et SQLAlchemy async | Stockage durable et accès asynchrones | Les migrations doivent être appliquées avant le démarrage applicatif |
-| PNG/JPEG dans une colonne `bytea` | Une seule persistance pour le POC | Croissance du volume, besoin ultérieur de rétention ou de stockage objet |
+| JPEG dans une colonne `bytea` | Une seule persistance pour le POC | Croissance du volume, besoin ultérieur de rétention ou de stockage objet |
 | Worker intégré | Lancement avec deux services Compose | Pas de montée en charge multiprocessus sans évolution de la réservation et des verrous |
 | Journal d’événements en base | Reconnexion et inspection par HTTP | Lecture périodique et coûts de conservation |
 | Verrou d’écriture local | Ordre cohérent entre validation et curseur d’événement | Coordination valable uniquement dans le processus unique prévu |
@@ -99,7 +99,7 @@ flowchart LR
 
 L’authentification contrôle une capacité signée limitée à la session et au rôle. Elle ne prouve pas l’identité nominative de la personne : `user_id` reste une donnée de contexte. La clé opérateur garde l’accès global et ne doit pas être distribuée aux appareils. La configuration locale lie le port au loopback. Un déploiement distant nécessite une clé renouvelée, TLS et une décision sur les clients autorisés.
 
-Les limites de taille, dimensions, âge des captures et longueur des questions bornent certains usages. Elles ne constituent pas un système complet de quotas par utilisateur, de protection contre les abus, de gestion des secrets ou d’audit. Les PNG/JPEG peuvent contenir des personnes et des lieux privés ; une politique de conservation et des droits d’accès restent à définir pour une exploitation réelle.
+Les limites de taille, dimensions, âge des captures et longueur des questions bornent certains usages. Elles ne constituent pas un système complet de quotas par utilisateur, de protection contre les abus, de gestion des secrets ou d’audit. Les JPEG peuvent contenir des personnes et des lieux privés ; une politique de conservation et des droits d’accès restent à définir pour une exploitation réelle.
 
 ## Évolution proposée
 
