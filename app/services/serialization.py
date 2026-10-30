@@ -39,6 +39,7 @@ def frame_read(row: Frame, detections: list[Detection]) -> FrameRead:
         processed_at=as_utc(row.processed_at) if row.processed_at else None,
         width=row.width,
         height=row.height,
+        content_type=row.content_type,
         provider=row.provider,
         simulated=row.simulated,
         description=row.description,

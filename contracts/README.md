@@ -1,5 +1,14 @@
 # Contrats LOOKi — API v1
 
+**Contrats v1.1 livrés le 30 octobre 2026.** Pour une nouvelle intégration, suivre les interfaces ci-dessous. Les anciennes questions WSS sont réservées au diagnostic opérateur ; le jeton mobile doit utiliser HTTP.
+
+| Interface | Contrat normatif |
+| --- | --- |
+| Pi, PNG et réessais | [raspberry-backend.md](raspberry-backend.md) |
+| Provisionnement et accès | [session-access.md](session-access.md) |
+| Mobile HTTP et audio WebRTC | [mobile-backend.md](mobile-backend.md) |
+| Alertes WSS et clips | [alerts.md](alerts.md) |
+
 Ces contrats permettent au Pi, à l’iPhone et au backend centres de développer indépendamment. La base HTTP locale est `http://localhost:8000`, avec préfixe `/api/v1`. En déploiement distant, utiliser HTTPS/WSS derrière un reverse proxy TLS.
 
 | Fichier | Usage |
@@ -13,14 +22,17 @@ La documentation détaillée du protocole et de la reprise est dans [docs/03-con
 
 ```mermaid
 flowchart LR
-    Pi[Pi] -->|POST multipart JPEG| HTTP[API HTTP]
-    Phone[iPhone] <-->|question / événements JSON| WS[Un WebSocket]
+    Pi[Pi] -->|POST multipart PNG| HTTP[API HTTP]
+    Phone[iPhone] <-->|alertes et événements JSON| WS[WebSocket]
+    Phone <-->|questions, état, arrêt| HTTP
     HTTP --> Main[Backend principal]
     WS --> Main
     Main -->|GET contexte JSON| Centers[Backend centres]
 ```
 
 ## Authentification
+
+Les appareils utilisent les jetons par session du [contrat d’accès](session-access.md). La clé ci-dessous reste réservée à l’opérateur et aux outils de diagnostic.
 
 Toutes les routes métier HTTP demandent `Authorization: Bearer <LOOKI_API_KEY>`. La valeur de développement est `looki-local-dev-key`. La clé n’est jamais un paramètre d’URL. Le WebSocket accepte ce même Bearer, ou un ticket temporaire obtenu par POST authentifié (voir ci-dessous). Les endpoints `/health/live`, `/health/ready`, `/docs` et `/openapi.json` sont accessibles sans cette clé.
 
@@ -42,7 +54,7 @@ L’upload est `multipart/form-data` avec trois parties obligatoires et une opti
 
 | Champ | Format | Règle |
 | --- | --- | --- |
-| `image` | Octets JPEG, partie `Content-Type: image/jpeg` | Vrai JPEG décodable ; défaut maximum `5 MiB` et `12 000 000` pixels |
+| `image` | Octets PNG RGB 8 bits, partie `Content-Type: image/png` ; JPEG conservé | Vrai PNG ou JPEG décodable ; défaut maximum `5 MiB` et `12 000 000` pixels |
 | `timestamp` | Date-heure RFC 3339 avec fuseau | Instant de capture, par exemple `2026-10-14T12:00:00Z` |
 | `frame_id` | UUID | Identifiant créé par le Pi, inchangé pendant les tentatives d’envoi |
 | `latest_only` | Booléen optionnel, défaut `false` | Remplacer les images pending de cette session avant admission ; les captures plus anciennes sont refusées |
@@ -52,13 +64,13 @@ L’ensemble de la requête est limité à `6 MiB` par défaut. Une capture nouv
 ### Extension vidéo live
 
 - `POST /api/v1/sessions/{session_id}/ws-ticket` : ticket à usage unique, lié à la session, expiration 30 s ; connexion `.../ws?after=<id>&ticket=<ticket>`. Les clients natifs peuvent conserver le Bearer.
-- `GET /api/v1/sessions/{session_id}/frames/{frame_id}/image` : JPEG exact, authentifié et limité à la session.
+- `GET /api/v1/sessions/{session_id}/frames/{frame_id}/image` : image exacte avec son MIME, authentifié et limité à la session.
 - `GET /api/v1/runtime` : configuration de vision et seuils, sans secrets.
 - `GET /api/v1/demo-video` : MP4 local configuré côté serveur, ou 404 ; ne reçoit pas de chemin arbitraire.
 
 Avec `latest_only=true`, chaque image remplacée devient `failed` et produit `analysis.failed` avec `code: superseded_frame`. Elle n’a pas été analysée. Le calcul en cours reste actif. Une image valide doit avoir un timestamp strictement plus récent que la dernière capture acceptée, sinon `409 out_of_order_frame`. L’idempotence des répétitions exactes est prioritaire. Les limites d’âge et d’admission restent applicables. [Détails et diagrammes](../docs/11-video-live-yolo.md).
 
-## WebSocket bidirectionnel
+## WebSocket de perception et diagnostic opérateur
 
 URL : `/api/v1/sessions/{session_id}/ws?after=0`. `after` est un curseur exclusif sur les identifiants durables. Un état initial est envoyé avec `id: null`, puis les événements persistés dont `id > after`, dans l’ordre croissant.
 
@@ -72,7 +84,7 @@ Client → serveur :
 {"type":"ping"}
 ```
 
-Une question contient `1` à `2000` caractères et ne peut pas être blanche. Les champs supplémentaires sont refusés. Chaque message est une trame texte JSON d’au plus `8192` octets. Aucun `POST` de questions séparé n’est nécessaire ni fourni.
+Une question contient `1` à `2000` caractères et ne peut pas être blanche. Les champs supplémentaires sont refusés. Chaque message est une trame texte JSON d’au plus `8192` octets. Ce message `question` est historique et réservé à la clé opérateur. Le mobile utilise désormais `POST /questions`, selon le contrat mobile.
 
 Serveur → client :
 

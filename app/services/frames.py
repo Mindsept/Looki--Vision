@@ -16,15 +16,22 @@ from app.services.serialization import frame_read
 from app.services.sessions import require_session
 
 
-def inspect_jpeg(data: bytes, max_pixels: int) -> tuple[int, int]:
+def inspect_image(data: bytes, max_pixels: int, content_type: str | None) -> tuple[int, int, str]:
     try:
         with warnings.catch_warnings():
             warnings.simplefilter("error", Image.DecompressionBombWarning)
             with Image.open(io.BytesIO(data)) as image:
-                if image.format != "JPEG":
+                if image.format not in {"JPEG", "PNG"}:
                     raise DomainError(
-                        415, "jpeg_required", "Seules les images JPEG sont acceptées."
+                        415, "unsupported_image_type", "Une image PNG ou JPEG est requise."
                     )
+                detected_type = Image.MIME[image.format]
+                if content_type is not None and content_type != detected_type:
+                    raise DomainError(415, "image_type_mismatch", "MIME et format réel différents.")
+                if image.format == "PNG" and (
+                    image.mode != "RGB" or image.n_frames != 1 or data[24] != 8
+                ):
+                    raise DomainError(422, "invalid_png", "PNG RGB 8 bits non animé requis.")
                 if image.width * image.height > max_pixels:
                     raise DomainError(
                         413, "image_dimensions_exceeded", "Image trop grande en pixels."
@@ -32,9 +39,9 @@ def inspect_jpeg(data: bytes, max_pixels: int) -> tuple[int, int]:
                 image.verify()
             with Image.open(io.BytesIO(data)) as image:
                 image.load()  # JPEG verify() alone does not catch every truncated pixel stream.
-                return image.size
+                return *image.size, detected_type
     except (UnidentifiedImageError, OSError, SyntaxError, ValueError) as exc:
-        raise DomainError(422, "invalid_image", "Image JPEG invalide ou tronquée.") from exc
+        raise DomainError(422, "invalid_image", "Image PNG ou JPEG invalide ou tronquée.") from exc
     except (Image.DecompressionBombError, Image.DecompressionBombWarning) as exc:
         raise DomainError(413, "image_dimensions_exceeded", "Image trop grande en pixels.") from exc
 
@@ -51,6 +58,7 @@ class FrameService:
         image: bytes,
         *,
         latest_only: bool = False,
+        content_type: str | None = None,
     ):
         settings = self.runtime.settings
         if timestamp.tzinfo is None or timestamp.utcoffset() is None:
@@ -65,8 +73,12 @@ class FrameService:
             existing = await FrameRepository(db).get(session_id, frame_id)
             if existing:
                 self._check_retry(existing, checksum, timestamp)
+                if content_type is not None and content_type != existing.content_type:
+                    raise DomainError(415, "image_type_mismatch", "MIME et format réel différents.")
                 return frame_read(existing, await FrameRepository(db).detections(existing.id)), True
-        width, height = await asyncio.to_thread(inspect_jpeg, image, settings.max_image_pixels)
+        width, height, detected_type = await asyncio.to_thread(
+            inspect_image, image, settings.max_image_pixels, content_type
+        )
         async with self.runtime.write_lock, self.runtime.db.sessions() as db, db.begin():
             # Recheck inside the atomic admission section after decoding outside the lock.
             session = await require_session(SessionRepository(db), session_id)
@@ -115,6 +127,7 @@ class FrameService:
                 image=image,
                 width=width,
                 height=height,
+                content_type=detected_type,
             )
             result = frame_read(row, [])
         return result, False
@@ -143,4 +156,5 @@ class FrameService:
             image = await FrameRepository(db).image_bytes(session_id, frame_id)
             if image is None:
                 raise DomainError(404, "frame_not_found", "Image inconnue.")
-            return image
+            row = await FrameRepository(db).get(session_id, frame_id)
+            return image, row.content_type

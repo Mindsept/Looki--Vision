@@ -44,6 +44,7 @@ class FrameRead(BaseModel):
     processed_at: datetime | None
     width: int
     height: int
+    content_type: Literal["image/png", "image/jpeg"] = "image/jpeg"
     provider: str | None
     simulated: bool | None
     description: str | None

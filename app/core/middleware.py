@@ -19,7 +19,14 @@ class BodyLimitMiddleware:
             declared = 0
         if declared > self.max_bytes:
             response = JSONResponse(
-                {"error": {"code": "request_too_large", "message": "Requête trop volumineuse."}},
+                {
+                    "error": {
+                        "code": "request_too_large",
+                        "message": "Requête trop volumineuse.",
+                        "retryable": False,
+                        "request_id": None,
+                    }
+                },
                 status_code=413,
             )
             return await response(scope, receive, send)

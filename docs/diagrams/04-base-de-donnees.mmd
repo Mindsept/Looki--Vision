@@ -1,5 +1,8 @@
 %% LOOKi - diagramme détaillé dans ../02-base-de-donnees.md
 erDiagram
+    sessions ||--o{ realtime_calls : ouvre
+    sessions ||--o{ audio_questions : demande
+    realtime_calls ||--o{ audio_questions : porte
     sessions ||--o{ frames : recoit
     sessions ||--o{ events : journalise
     frames ||--o{ detections : contient
@@ -23,6 +26,7 @@ erDiagram
         timestamptz processed_at "nullable"
         varchar status
         varchar sha256
+        varchar content_type "image/png ou image/jpeg"
         bytea image
         integer width
         integer height
@@ -66,4 +70,32 @@ erDiagram
         varchar error_code "nullable"
         timestamptz created_at
         timestamptz processed_at "nullable"
+    }
+    realtime_calls {
+        uuid id PK
+        uuid session_id FK
+        uuid request_id "cle de creation"
+        integer media_epoch
+        varchar control_status
+        varchar provider_call_id "interne"
+        text sdp_answer "nullable"
+        json error
+        timestamptz created_at
+        timestamptz closed_at "nullable"
+    }
+    audio_questions {
+        uuid id PK
+        uuid session_id FK
+        uuid call_id FK
+        uuid request_id "cle de question"
+        integer media_epoch
+        varchar status
+        varchar media_status
+        text text
+        uuid context_id "nullable"
+        json context "snapshot fige"
+        json playback
+        text transcript "nullable"
+        json error
+        timestamptz deadline_at
     }

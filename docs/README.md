@@ -37,12 +37,13 @@ flowchart TD
 | [12 — Segmentation et suivi](12-segmentation-suivi.md) | Masques, ByteTrack, indices contradictoires, classes, persistance et tests CPU | Backend, Embedded, PO |
 | [13 — Profondeur indépendante](13-profondeur-independante.md) | Deux cadences, tendance de taille, mémoire du risque, reprise et mesures à 4 CPU | Backend, Embedded, iPhone, PO |
 | [14 — Proximité urbaine](14-proximite-urbaine.md) | Profils personnes/vélos/voitures, détection, motifs et tests à 4 CPU | Backend, Embedded, iPhone, PO |
+| [15 — Mobile Realtime et Pi](15-mobile-realtime-et-pi.md) | Contrats v1.1, classes, tables et limites de validation | Mobile, Embedded, backend |
 
 Les formats échangeables se trouvent dans [`../contracts/`](../contracts/README.md). La spécification HTTP est publiée à l’exécution sur `/openapi.json` et `/docs`. Le schéma WebSocket complète OpenAPI, qui ne décrit pas les messages échangés sur une connexion ouverte.
 
 ## Sources Mermaid autonomes
 
-Les **16 fichiers `.mmd`** du [catalogue des diagrammes](diagrams/README.md) couvrent l’architecture, les couches, les classes métier et vision, les tables BDD, l’ingestion, les questions, la reconnexion, le cycle des images, la proximité et le déploiement Compose. Ils complètent les schémas intégrés aux chapitres.
+Les fichiers `.mmd` du [catalogue des diagrammes](diagrams/README.md) couvrent l’architecture, les couches, les classes métier et vision, les tables BDD, l’ingestion, les questions, la reconnexion, le cycle des images, la proximité et le déploiement Compose. Ils complètent les schémas intégrés aux chapitres.
 
 La racine de toutes les commandes est désormais le **dépôt `backend/`** : `compose.yaml`, `.env.example`, `README.md`, `contracts/` et ce dossier `docs/` sont réunis au même endroit.
 
@@ -52,14 +53,15 @@ Pour lancer une démonstration, commencer par le [README du dépôt](../README.m
 
 ```mermaid
 flowchart LR
-    Pi[Pi — JPEG] --> API[Backend principal]
-    API --> Vision[Vision et profondeur]
-    Vision --> API
-    Centres[Contexte du centre] --> API
-    API --> WS[Textes via WebSocket]
-    WS --> Phone[iPhone — TTS]
-    Phone -->|Question transcrite| API
-    Phone --> Headphones[Écouteurs]
+    Pi["Raspberry Pi — PNG"] -->|"HTTPS multipart"| API["FastAPI — contrôleurs et services"]
+    API --> DB[("PostgreSQL")]
+    API --> Vision["YOLO, suivi et profondeur indépendante"]
+    Vision --> DB
+    App["iPhone — STT, WebRTC, clips"] <-->|"HTTPS questions et état"| API
+    API -->|"WSS alertes"| App
+    API <-->|"WSS sideband"| RT["OpenAI Realtime"]
+    RT -->|"Audio WebRTC direct"| App
+    API --> Centres["Contexte centres — mock ou REST"]
 ```
 
 Le profil de `.env.example` active la vision réelle **YOLO26n-seg + ByteTrack + UniDepthV2**, sur CPU. Copier cet exemple dans `.env` avant le premier `compose up --build` : les poids se téléchargent au démarrage et restent dans le volume Docker `looki_model_cache`. Le mode vision `mock` reste disponible explicitement pour tester le protocole ; le contexte des centres reste simulé par défaut. La profondeur métrique est une estimation monoculaire à valider sur la caméra et l’environnement retenus ; la vigilance visuelle ne certifie pas une distance physique.

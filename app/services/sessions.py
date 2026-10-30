@@ -45,6 +45,7 @@ class SessionService:
                     row.id, "session.state", {"status": "closed", "center_id": row.center_id}
                 )
             result = session_read(row)
+        await self.runtime.realtime.close_session(session_id)
         return result
 
     async def events(self, session_id: UUID, after: int, limit: int):

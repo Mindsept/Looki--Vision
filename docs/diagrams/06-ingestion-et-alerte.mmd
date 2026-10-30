@@ -10,9 +10,9 @@ sequenceDiagram
     participant WS as Contrôleur WebSocket
     participant Phone as iPhone
     Note over Pi,Phone: Session créée et WebSocket authentifié déjà ouvert
-    Pi->>HTTP: POST /api/v1/sessions/{session_id}/frames<br/>JPEG + frame_id + timestamp
+    Pi->>HTTP: POST /api/v1/sessions/{session_id}/frames<br/>PNG + frame_id + timestamp
     HTTP->>Service: ingest(session_id, frame_id, timestamp, image)
-    Service->>Service: Valider JPEG, fraîcheur, session et capacité
+    Service->>Service: Valider PNG/JPEG, fraîcheur, session et capacité
     Service->>DB: Insérer frame pending sous write_lock, COMMIT
     Service-->>HTTP: FrameRead
     HTTP-->>Pi: 202 Accepted
@@ -36,4 +36,4 @@ sequenceDiagram
         DB-->>WS: Événements persistés, ordonnés par id
         WS-->>Phone: frame.analyzed, alert.proximity ou analysis.failed
     end
-    Phone->>Phone: Dédupliquer et conserver le curseur<br/>Contrôler fraîcheur avant TTS de l'alerte
+    Phone->>Phone: Dédupliquer et conserver le curseur<br/>Vérifier expires_at puis jouer le clip sound_id

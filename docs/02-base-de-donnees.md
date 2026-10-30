@@ -6,6 +6,9 @@ Sources Mermaid : [tables et relations](diagrams/04-base-de-donnees.mmd), [cycle
 
 ```mermaid
 erDiagram
+    sessions ||--o{ realtime_calls : ouvre
+    sessions ||--o{ audio_questions : demande
+    realtime_calls ||--o{ audio_questions : porte
     sessions ||--o{ frames : recoit
     sessions ||--o{ events : journalise
     frames ||--o{ detections : contient
@@ -29,6 +32,7 @@ erDiagram
         timestamptz processed_at "nullable"
         varchar status
         varchar sha256
+        varchar content_type "image/png ou image/jpeg"
         bytea image
         integer width
         integer height
@@ -72,6 +76,34 @@ erDiagram
         varchar error_code "nullable"
         timestamptz created_at
         timestamptz processed_at "nullable"
+    }
+    realtime_calls {
+        uuid id PK
+        uuid session_id FK
+        uuid request_id "cle de creation"
+        integer media_epoch
+        varchar control_status
+        varchar provider_call_id "interne"
+        text sdp_answer "nullable"
+        json error
+        timestamptz created_at
+        timestamptz closed_at "nullable"
+    }
+    audio_questions {
+        uuid id PK
+        uuid session_id FK
+        uuid call_id FK
+        uuid request_id "cle de question"
+        integer media_epoch
+        varchar status
+        varchar media_status
+        text text
+        uuid context_id "nullable"
+        json context "snapshot fige"
+        json playback
+        text transcript "nullable"
+        json error
+        timestamptz deadline_at
     }
 ```
 
@@ -117,8 +149,8 @@ Le backend centres demeure la source métier. Le snapshot de contexte rend la se
 | `received_at` | Date serveur d’acceptation |
 | `processed_at` | Date serveur de fin du traitement, si disponible |
 | `status` | `pending`, `processing`, `completed` ou `failed` |
-| `sha256` | Empreinte des octets JPEG pour contrôler les nouvelles tentatives d’envoi |
-| `image` | Octets JPEG en `bytea`, chargés explicitement pour l’analyse |
+| `sha256` | Empreinte des octets PNG/JPEG pour contrôler les nouvelles tentatives d’envoi |
+| `image` | Octets PNG/JPEG en `bytea`, chargés explicitement pour l’analyse |
 | `width`, `height` | Dimensions obtenues en décodant l’image |
 | `provider` | Nom du provider ayant produit l’analyse |
 | `simulated` | Indique un résultat simulé ; `null` avant disponibilité d’un résultat |
@@ -128,7 +160,7 @@ Le backend centres demeure la source métier. Le snapshot de contexte rend la se
 | `timing_ms` | Détail des durées mesurées dans les providers, notamment prétraitement, profondeur, détection et fusion ; objet vide pour les anciennes images |
 | `vision_metadata` | Paramètres et identifiants des modèles associés au résultat, exposés sous le nom `metadata` dans l’API ; objet vide pour les anciennes images |
 
-Stocker les JPEG dans PostgreSQL simplifie la persistance transactionnelle du POC. Les réponses de consultation ne renvoient pas les octets JPEG. À cadence continue, cette stratégie fait croître rapidement la base ; aucune suppression automatique n’est active dans cette version.
+Stocker les PNG/JPEG dans PostgreSQL simplifie la persistance transactionnelle du POC. Les réponses de consultation ne renvoient pas les octets PNG/JPEG. À cadence continue, cette stratégie fait croître rapidement la base ; aucune suppression automatique n’est active dans cette version.
 
 ### Detection
 
@@ -199,7 +231,7 @@ sequenceDiagram
     participant API as Service d’upload
     participant DB as PostgreSQL
     participant Worker
-    API->>DB: Insérer image pending et octets JPEG
+    API->>DB: Insérer image pending et octets PNG/JPEG
     API->>DB: COMMIT
     API-->>API: Réponse 202
     Worker->>DB: Passer l’image en processing
@@ -249,3 +281,19 @@ La migration `b84e901df8ac` ajoute `detections.perception JSON NOT NULL DEFAULT 
 La migration `c581a9367e02` ajoute `depth_jobs`, liée par une FK unique à `frames.id`. `masks` conserve les masques complets compressés, chargés de façon différée ; `observations` en conserve le snapshot ordonné. `result` contient le payload métrique final et `error_code` son éventuel échec. `created_at` et `processed_at` datent le travail. La contrainte `ck_depth_job_status` borne les quatre états. La réservation sélectionne les travaux `pending` par date de création.
 
 Le résultat visuel reste dans `frames` et `detections`, avec mètres nuls en mode indépendant. Les mètres différés ne le réécrivent pas. Le résultat de profondeur, `frame.depth_analyzed` et l’alerte métrique éventuelle sont validés ensemble. Une reprise remet `processing` en `pending` puis vérifie la fraîcheur de la capture. Voir [le flux complet et le cycle de vie](13-profondeur-independante.md).
+
+## Appels et demandes audio durables
+
+Migration `d73c9a210bf4`, après `c581a9367e02` : ajout de `frames.content_type` et des tables `realtime_calls`, `audio_questions`. Les captures déjà persistées reçoivent `image/jpeg` ; leurs octets ne changent pas.
+
+`realtime_calls` conserve la clé idempotente d’offre, son SHA-256, l’époque, l’identifiant fournisseur interne et l’état de contrôle. L’offre complète n’est pas conservée. `audio_questions` conserve le texte, l’état de génération, celui du média, le snapshot sélectionné, la transcription éventuelle et les snapshots de lecture séquencés. Les images ne sont pas dupliquées dans ce JSON : leurs UUID désignent les octets immuables de `frames`.
+
+| Contrainte | Invariant |
+| --- | --- |
+| `uq_call_request` | Une création par session et UUID de création |
+| `uq_call_epoch` | Une époque unique dans sa session |
+| `uq_call_active_session`, index partiel `closed_at IS NULL` | Un seul appel non clos par session |
+| `uq_audio_question_request` | Une question par session et UUID logique |
+| `uq_question_active_media`, index partiel `media_status != 'closed'` | Une seule sortie audio occupée par session |
+
+Les transactions s’achèvent avant chaque opération fournisseur. Un envoi incertain n’est pas rejoué après redémarrage. La fin de génération ne libère pas le média : voir [états et classes](15-mobile-realtime-et-pi.md). Aucune purge automatique n’est livrée ; prévoir la rétention avant des sessions longues en PNG.

@@ -1,28 +1,10 @@
-%% LOOKi - diagramme détaillé dans ../01-architecture.md
-flowchart TB
-    subgraph Lunettes
-        Camera[Caméra] --> Pi[Raspberry Pi<br/>Capture et JPEG]
-    end
-    subgraph Mobile
-        Hotspot[Partage de connexion Wi-Fi]
-        iOS[Application iPhone]
-        STT[STT — voix vers texte]
-        TTS[TTS — texte vers voix]
-        STT --> iOS
-        iOS --> TTS
-        TTS --> Audio[Écouteurs]
-    end
-    subgraph Serveur
-        FastAPI[Backend FastAPI]
-        Worker[Worker d’analyse]
-        Model[Provider vision<br/>mock, profondeur ou objets urbains]
-        DB[(PostgreSQL)]
-        FastAPI --> DB
-        Worker --> DB
-        Worker --> Model
-    end
-    Pi -. Accès Internet .-> Hotspot
-    Pi -->|POST JPEG - HTTP local, HTTPS distant| FastAPI
-    iOS <-->|Un WebSocket bidirectionnel<br/>WS local, WSS distant| FastAPI
-    FastAPI -->|Chargement du contexte| Centres[Provider centres<br/>JSON local ou REST]
-    Worker -->|Événements persistés| DB
+flowchart LR
+    Pi["Raspberry Pi — PNG"] -->|"HTTPS multipart"| API["FastAPI — contrôleurs et services"]
+    API --> DB[("PostgreSQL")]
+    API --> Vision["YOLO, suivi et profondeur indépendante"]
+    Vision --> DB
+    App["iPhone — STT, WebRTC, clips"] <-->|"HTTPS questions et état"| API
+    API -->|"WSS alertes"| App
+    API <-->|"WSS sideband"| RT["OpenAI Realtime"]
+    RT -->|"Audio WebRTC direct"| App
+    API --> Centres["Contexte centres — mock ou REST"]

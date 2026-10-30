@@ -7,8 +7,15 @@ from fastapi.responses import FileResponse
 from app.core.auth import require_auth
 from app.core.errors import DomainError
 from app.schemas.api import FrameRead, ServerEvent, SessionCreate, SessionRead
+from app.schemas.mobile import ErrorEnvelope
 
-router = APIRouter(prefix="/api/v1", dependencies=[Depends(require_auth)])
+router = APIRouter(
+    prefix="/api/v1",
+    dependencies=[Depends(require_auth)],
+    responses={
+        code: {"model": ErrorEnvelope} for code in (401, 403, 404, 409, 413, 415, 422, 429, 503)
+    },
+)
 
 
 @router.post("/sessions", response_model=SessionRead, status_code=201, tags=["Sessions"])
@@ -36,7 +43,7 @@ async def close_session(session_id: UUID, request: Request):
         200: {"model": FrameRead, "description": "Exact retry of an existing frame"},
         409: {"description": "Closed session or conflicting frame_id"},
         413: {"description": "Image or request exceeds configured limits"},
-        415: {"description": "JPEG required"},
+        415: {"description": "PNG or JPEG required; declared MIME must match bytes"},
         429: {"description": "Analysis queue full; Retry-After: 1"},
     },
     tags=["Frames"],
@@ -47,19 +54,28 @@ async def ingest_frame(
     response: Response,
     frame_id: UUID = Form(...),
     timestamp: datetime = Form(...),
-    image: UploadFile = File(...),
+    image: UploadFile = File(
+        ..., description="PNG RGB 8-bit, non-animated (image/png); JPEG accepted for compatibility."
+    ),
     latest_only: bool = Form(default=False),
 ):
-    """Accept a timestamped JPEG. Pi must reuse frame_id AND timestamp on retry."""
+    """Accept a timestamped PNG/JPEG. Reuse frame_id, timestamp and exact bytes on retry."""
     runtime = request.app.state.runtime
     try:
-        if image.content_type != "image/jpeg":
-            raise DomainError(415, "jpeg_required", "Content-Type image/jpeg requis.")
+        if image.content_type not in {"image/png", "image/jpeg"}:
+            raise DomainError(
+                415, "unsupported_image_type", "Content-Type image/png ou image/jpeg requis."
+            )
         data = await image.read(runtime.settings.max_image_bytes + 1)
     finally:
         await image.close()
     result, duplicate = await runtime.frames.ingest(
-        session_id, frame_id, timestamp, data, latest_only=latest_only
+        session_id,
+        frame_id,
+        timestamp,
+        data,
+        latest_only=latest_only,
+        content_type=image.content_type,
     )
     if duplicate:
         response.status_code = 200
@@ -93,12 +109,17 @@ async def websocket_ticket(session_id: UUID, request: Request):
     tags=["Live"],
     response_class=Response,
     responses={
-        200: {"content": {"image/jpeg": {"schema": {"type": "string", "format": "binary"}}}}
+        200: {
+            "content": {
+                mime: {"schema": {"type": "string", "format": "binary"}}
+                for mime in ("image/png", "image/jpeg")
+            }
+        }
     },
 )
 async def frame_image(session_id: UUID, frame_id: UUID, request: Request):
-    image = await request.app.state.runtime.frames.image(session_id, frame_id)
-    return Response(image, media_type="image/jpeg", headers={"Cache-Control": "no-store"})
+    image, content_type = await request.app.state.runtime.frames.image(session_id, frame_id)
+    return Response(image, media_type=content_type, headers={"Cache-Control": "no-store"})
 
 
 @router.get("/runtime", tags=["Live"])

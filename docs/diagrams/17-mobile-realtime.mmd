@@ -1,0 +1,22 @@
+sequenceDiagram
+    participant M as iPhone
+    participant B as FastAPI
+    participant DB as PostgreSQL
+    participant O as OpenAI Realtime
+    M->>B: POST appel, UUID et SDP recvonly
+    B->>DB: Persister connecting
+    B-->>M: 201, call_id et media_epoch
+    B->>O: Créer appel et attacher sideband
+    B->>DB: Contrôle ready
+    M->>B: GET appel
+    B-->>M: SDP answer, ready
+    M->>O: Connexion WebRTC
+    M->>B: POST question, playback_ready true
+    B->>DB: Figer 1 à 3 captures analysées et la demande
+    B-->>M: 202, état et context_id
+    B->>O: response.create, images PNG et JSON
+    O-->>M: Audio WebRTC direct
+    O-->>B: response.done
+    B->>DB: completed, média encore occupé
+    M->>B: PUT playback finished
+    B->>DB: media_status closed

@@ -1,9 +1,11 @@
 import math
+from datetime import timedelta
 
 from app.core.config import Settings
+from app.core.time import as_utc
 
 # Canonical COCO labels are preserved in the API; this small presentation
-# dictionary keeps common outdoor warnings suitable for the iPhone's French TTS.
+# dictionary supplies display/debug text. Mobile alerts use prerecorded sound_id clips.
 FRENCH_OBJECT_NAMES = {
     "person": "personne",
     "bicycle": "vélo",
@@ -31,6 +33,24 @@ FRENCH_OBJECT_NAMES = {
 class ProximityService:
     def __init__(self, settings: Settings):
         self.settings = settings
+
+    def audio_fields(self, captured_at, detections):
+        clips = set()
+        for detection in detections:
+            label = detection["label"]
+            center = (detection["bbox"][0] + detection["bbox"][2]) / 2
+            direction = "left" if center < 1 / 3 else "right" if center > 2 / 3 else "front"
+            clips.add(
+                f"v1.{label}_{direction}"
+                if label in {"person", "bicycle", "car"}
+                else "v1.proximity_generic"
+            )
+        return {
+            "expires_at": (
+                as_utc(captured_at) + timedelta(seconds=self.settings.alert_ttl_seconds)
+            ).isoformat(),
+            "sound_id": next(iter(clips)) if len(clips) == 1 else "v1.proximity_generic",
+        }
 
     def classify(self, distance_m: float | None, confidence: float) -> str:
         if (

@@ -1,18 +1,19 @@
 # LOOKi — Backend principal
 
-Backend **Python / FastAPI** du prototype de lunettes connectées. Il reçoit les JPEG du Raspberry Pi, analyse les objets et leur proximité, puis transmet descriptions, réponses et alertes à l’iPhone via **un seul WebSocket bidirectionnel**. PostgreSQL conserve les sessions, images, détections et événements rejouables.
+Backend **Python / FastAPI** du prototype de lunettes connectées. Il reçoit les **PNG du Raspberry Pi**, analyse les objets et leur proximité, puis envoie les alertes à l’iPhone en WSS. Les questions transcrites passent en **HTTPS** ; le backend pilote OpenAI Realtime par sideband, tandis que la voix rejoint directement l’iPhone en **WebRTC**. PostgreSQL conserve les captures, événements, appels et demandes audio.
 
 Ce dossier est la **racine du dépôt Git** (`LOOKi/backend/` dans le workspace). Toutes les commandes ci-dessous se lancent ici ; aucun fichier du dossier parent n’est nécessaire.
 
 ```mermaid
 flowchart LR
-    Pi["Raspberry Pi — JPEG horodatés"] -->|POST multipart| API["FastAPI — contrôleurs et services"]
-    API --> DB[(PostgreSQL)]
-    DB --> Worker["Worker visuel et worker profondeur indépendant"]
-    Worker --> Vision["YOLO26n-seg + ByteTrack<br/>et profondeur UniDepthV2"]
-    Vision --> Worker
-    Worker -->|Résultats et alertes| DB
-    API <-->|Un WebSocket| Phone["iPhone — STT et TTS"]
+    Pi["Raspberry Pi — PNG"] -->|"HTTPS multipart"| API["FastAPI — contrôleurs et services"]
+    API --> DB[("PostgreSQL")]
+    API --> Vision["YOLO, suivi et profondeur indépendante"]
+    Vision --> DB
+    App["iPhone — STT, WebRTC, clips"] <-->|"HTTPS questions et état"| API
+    API -->|"WSS alertes"| App
+    API <-->|"WSS sideband"| RT["OpenAI Realtime"]
+    RT -->|"Audio WebRTC direct"| App
     API --> Centres["Contexte centres — mock ou REST"]
 ```
 
@@ -53,6 +54,20 @@ docker compose down
 
 `down` arrête et retire les conteneurs ; les volumes persistent. Voir le [guide d’exploitation](docs/05-installation-et-exploitation.md) pour les paramètres, les modèles, les migrations et le diagnostic.
 
+## Intégrer le Pi et le mobile
+
+Les contrats v1.1 sont synchronisés avec le dépôt de documentation d’équipe :
+
+- [Raspberry Pi → backend : PNG, cadence, erreurs et réessais](contracts/raspberry-backend.md).
+- [Session partagée et jetons distincts Pi/mobile](contracts/session-access.md).
+- [Mobile : questions HTTP et cycle de vie audio Realtime](contracts/mobile-backend.md).
+- [Alertes WSS, expiration et catalogue des clips](contracts/alerts.md).
+- [Architecture, classes et nouvelles tables](docs/15-mobile-realtime-et-pi.md).
+
+La vision réelle reste le profil par défaut. **Realtime est désactivé tant que vous n’avez pas configuré une clé serveur** : ajouter `LOOKI_REALTIME_ENABLED=true` et `LOOKI_OPENAI_API_KEY` dans le `.env` privé, puis recréer le backend. Modèle initial `gpt-realtime`, voix `marin`. Ne jamais distribuer cette clé aux appareils. Aucun faux audio ne remplace une clé absente : la création d’appel retourne `503`, la vision continue.
+
+L’opérateur crée la session et appelle `/access-tokens` pour transmettre un jeton propre à chaque appareil. Le Pi utilise `scripts/pi_upload.py` pour un premier PNG ; le front `/live/` conserve ses JPEG de diagnostic. La bibliothèque WebRTC iOS, les clips et le test audio physique restent à intégrer côté mobile. Les tests fournisseur automatisés utilisent un transport contrôlé, pas une connexion OpenAI réelle.
+
 ## Démonstration
 
 Pour tester la vision réelle, ouvrir [/live/](http://127.0.0.1:8000/live/), renseigner la clé API locale et choisir une vidéo sur son ordinateur. Le navigateur envoie les JPEG au backend ; les masques, pistes, estimations de profondeur et alertes proviennent des modèles exécutés dans le conteneur. La vidéo NYC utilisée pour nos essais est privée et n’est pas fournie dans le dépôt. Le champ `LOOKI_DEMO_VIDEO_PATH` peut rester vide pour le choix d’un fichier local.
@@ -63,7 +78,7 @@ Pour une démonstration déterministe du protocole, passer explicitement `LOOKI_
 docker compose exec backend python scripts/demo.py --base-url http://127.0.0.1:8000
 ```
 
-La démo crée une session, envoie une image proche simulée, vérifie l’analyse et l’alerte, pose une question via le même WebSocket, teste la reconnexion puis clôture la session. Les fixtures `near.jpg`, `far.jpg` et `clear.jpg` sont dans `fixtures/images/`.
+Ce parcours historique, réservé à la clé opérateur, ne valide pas le contrat mobile Realtime. La démo crée une session, envoie une image proche simulée, vérifie l’analyse et l’alerte, pose une question via le même WebSocket, teste la reconnexion puis clôture la session. Les fixtures `near.jpg`, `far.jpg` et `clear.jpg` sont dans `fixtures/images/`.
 
 ## Organisation du dépôt
 
@@ -86,7 +101,7 @@ La démo crée une session, envoie une image proche simulée, vérifie l’analy
 ├── calibration/          # Calibration réelle de caméra, montée en lecture seule
 ├── contracts/            # OpenAPI, JSON Schema et exemples
 ├── docs/                 # Architecture, données, flux, exploitation, évaluations
-│   └── diagrams/         # 16 diagrammes Mermaid autonomes (.mmd)
+│   └── diagrams/         # Diagrammes Mermaid autonomes (.mmd)
 ├── frontend/             # React / Vite, construit et servi par FastAPI sous /live/
 ├── media/                # Vidéos locales ignorées par Git, montage en lecture seule
 ├── fixtures/             # Contextes et images de test sourcées
@@ -139,7 +154,7 @@ Après installation locale des dépendances de développement, avec le serveur e
   --output-dir output/urban-current-evaluation
 ```
 
-Les [essais urbains](docs/09-test-urbain.md) et la [comparaison avec références physiques](docs/10-metric-depth-comparison.md) distinguent temps de calcul, erreurs métriques et alertes transmises. Les distances monoculaires restent des estimations : le modèle et la calibration doivent être validés sur la caméra Pi finale. Le LLM et les itinéraires restent prévus pour la suite ; les réponses aux questions sont déterministes et le STT/TTS appartient à l’iPhone.
+Les [essais urbains](docs/09-test-urbain.md) et la [comparaison avec références physiques](docs/10-metric-depth-comparison.md) distinguent temps de calcul, erreurs métriques et alertes transmises. Les distances monoculaires restent des estimations : le modèle et la calibration doivent être validés sur la caméra Pi finale. Les réponses HTTP peuvent maintenant utiliser OpenAI Realtime, après configuration serveur. Le STT reste sur iPhone ; les réponses vocales sont natives et les alertes utilisent des clips locaux. Le diagnostic WSS opérateur reste déterministe. Les itinéraires ne sont pas implémentés.
 
 ## Développer et tester
 

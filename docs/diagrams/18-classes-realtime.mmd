@@ -1,0 +1,56 @@
+classDiagram
+    class MobileController {
+        <<module>>
+        create_call()
+        ask_question()
+        playback()
+        cancel()
+    }
+    class RealtimeService {
+        create_call()
+        submit()
+        handle_event()
+        close_call()
+        recover()
+        watchdog()
+    }
+    class SceneContext {
+        <<module>>
+        freeze_scene()
+        snapshot_images()
+        image_input()
+    }
+    class RealtimeRepository {
+        call_request()
+        current_call()
+        next_epoch()
+        question()
+        active_question()
+    }
+    class OpenAIRealtimeProvider {
+        create()
+        attach()
+        generate()
+        interrupt()
+        hangup()
+    }
+    class RealtimeCall {
+        UUID session_id
+        UUID request_id
+        int media_epoch
+        str control_status
+    }
+    class AudioQuestion {
+        UUID request_id
+        str status
+        str media_status
+        dict context
+        dict playback
+    }
+    MobileController --> RealtimeService
+    RealtimeService --> SceneContext
+    RealtimeService --> RealtimeRepository
+    RealtimeService --> OpenAIRealtimeProvider
+    RealtimeRepository --> RealtimeCall
+    RealtimeRepository --> AudioQuestion
+    RealtimeCall "1" --> "*" AudioQuestion

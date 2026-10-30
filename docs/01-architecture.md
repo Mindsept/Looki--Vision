@@ -6,36 +6,19 @@ Sources Mermaid : [architecture](diagrams/01-architecture.mmd), [couches](diagra
 
 ## Périmètre et frontières
 
-Le backend reçoit des images JPEG indépendantes. Il orchestre un provider de vision, applique une politique de proximité, persiste le résultat et expose les textes à l’application mobile. Le Raspberry Pi utilise l’iPhone comme point d’accès réseau ; il n’appelle pas l’application iOS.
+Le backend reçoit des images PNG indépendantes (JPEG encore accepté pour le diagnostic). Il orchestre un provider de vision, applique une politique de proximité, persiste le résultat et expose les textes à l’application mobile. Le Raspberry Pi utilise l’iPhone comme point d’accès réseau ; il n’appelle pas l’application iOS.
 
 ```mermaid
-flowchart TB
-    subgraph Lunettes
-        Camera[Caméra] --> Pi[Raspberry Pi<br/>Capture et JPEG]
-    end
-    subgraph Mobile
-        Hotspot[Partage de connexion Wi-Fi]
-        iOS[Application iPhone]
-        STT[STT — voix vers texte]
-        TTS[TTS — texte vers voix]
-        STT --> iOS
-        iOS --> TTS
-        TTS --> Audio[Écouteurs]
-    end
-    subgraph Serveur
-        FastAPI[Backend FastAPI]
-        Worker[Worker d’analyse]
-        Model[Provider vision<br/>mock, profondeur ou objets urbains]
-        DB[(PostgreSQL)]
-        FastAPI --> DB
-        Worker --> DB
-        Worker --> Model
-    end
-    Pi -. Accès Internet .-> Hotspot
-    Pi -->|POST JPEG - HTTP local, HTTPS distant| FastAPI
-    iOS <-->|Un WebSocket bidirectionnel<br/>WS local, WSS distant| FastAPI
-    FastAPI -->|Chargement du contexte| Centres[Provider centres<br/>JSON local ou REST]
-    Worker -->|Événements persistés| DB
+flowchart LR
+    Pi["Raspberry Pi — PNG"] -->|"HTTPS multipart"| API["FastAPI — contrôleurs et services"]
+    API --> DB[("PostgreSQL")]
+    API --> Vision["YOLO, suivi et profondeur indépendante"]
+    Vision --> DB
+    App["iPhone — STT, WebRTC, clips"] <-->|"HTTPS questions et état"| API
+    API -->|"WSS alertes"| App
+    API <-->|"WSS sideband"| RT["OpenAI Realtime"]
+    RT -->|"Audio WebRTC direct"| App
+    API --> Centres["Contexte centres — mock ou REST"]
 ```
 
 Les routes HTTP ne réalisent pas l’inférence dans la requête d’upload. Une image valide est enregistrée puis une réponse `202 Accepted` est renvoyée. Le worker récupère les images en attente. Le flux WebSocket lit le journal d’événements en base et transmet les nouvelles entrées au mobile.
@@ -98,6 +81,8 @@ flowchart TD
 La séparation permet de garder les mêmes contrôleurs et cas d’usage quand le provider mock est remplacé par une implémentation réelle. Elle ne suppose pas un microservice par couche : toutes ces classes sont dans le même backend.
 
 ## Classes et composition du runtime
+
+Ce schéma conserve les services de vision et le diagnostic historique. Les classes supplémentaires `RealtimeService`, `SceneContext`, `RealtimeRepository` et `OpenAIRealtimeProvider` sont détaillées au [chapitre 15](15-mobile-realtime-et-pi.md).
 
 ```mermaid
 classDiagram
@@ -205,7 +190,7 @@ backend/                       # Racine du dépôt Git
 
 ```mermaid
 flowchart LR
-    Raw[JPEG + horodatage + frame_id] --> Valid[Validation et contrôle de session]
+    Raw[PNG ou JPEG + horodatage + frame_id] --> Valid[Validation et contrôle de session]
     Valid --> Pending[(Image pending)]
     Pending --> Analysis[Worker + provider vision]
     Context[(Contexte mémorisé<br/>dans la session)] --> Questions[Réponses déterministes<br/>nom et identifiant du centre]
@@ -251,11 +236,11 @@ flowchart LR
     subgraph HorsBackend[Autres responsabilités]
         Mechanics[Monture, caméra et alimentation]
         Capture[Capture, compression et cadence]
-        Speech[STT, TTS et routage audio]
+        Speech[STT, WebRTC, clips et routage audio]
         Admin[CRUD centres, lieux et graphe]
     end
     subgraph Backend[Backend principal livré]
-        Ingest[Ingestion des JPEG]
+        Ingest[Ingestion PNG et JPEG]
         Infer[Analyse et proximité]
         Notify[Journal et WebSocket]
         Context[Lecture du contexte]
@@ -269,6 +254,6 @@ flowchart LR
     Context --> Questions[Réponse textuelle<br/>nom du centre]
 ```
 
-Le backend ne pilote pas la caméra, ne calcule pas le partage de connexion, ne produit pas de son et ne maintient pas le référentiel métier des centres. Dans cette phase, une question reçoit une réponse déterministe fondée sur les observations disponibles ; l’intégration d’un LLM, d’itinéraires et d’un modèle vidéo temporel reste à ajouter.
+Le backend ne pilote pas la caméra, ne calcule pas le partage de connexion, ne produit pas de son et ne maintient pas le référentiel métier des centres. Les questions mobile passent par RealtimeService et son adaptateur OpenAI : voir le [chapitre 15](15-mobile-realtime-et-pi.md) pour le cycle audio et ses classes. QuestionService reste le parcours déterministe de diagnostic opérateur. Les itinéraires restent à ajouter.
 
 Le contexte centres est conservé dans la session et ses métadonnées sont jointes aux réponses. Il n’est pas envoyé au provider de vision dans cette version et ne modifie pas encore les classes reconnues ou le calcul de proximité.

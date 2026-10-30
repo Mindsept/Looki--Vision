@@ -389,7 +389,7 @@ def test_worker_queue_is_bounded_but_retries_remain_allowed(client_factory):
 
 @pytest.mark.parametrize(
     "image,media_type,status",
-    [(b"this is not a JPEG", "image/jpeg", 422), (b"not a PNG either", "image/png", 415)],
+    [(b"this is not a JPEG", "image/jpeg", 422), (b"not a PNG either", "image/png", 422)],
 )
 def test_invalid_images_are_rejected_before_enqueue(client, image, media_type, status):
     session_id = create_session(client)
@@ -429,6 +429,12 @@ def test_chunked_multipart_request_limit_is_enforced_without_content_length(clie
     assert "content-length" not in request.headers
     response = client.send(request)
     assert response.status_code == 413, response.text
+    assert response.json()["error"] == {
+        "code": "request_too_large",
+        "message": "Requête trop volumineuse.",
+        "retryable": False,
+        "request_id": None,
+    }
 
 
 def test_image_pixel_limit_is_enforced(client_factory):

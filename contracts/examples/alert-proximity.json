@@ -26,6 +26,8 @@
         "distance_source": "simulated",
         "proximity": "near"
       }
-    ]
+    ],
+    "expires_at": "2026-10-14T12:00:03+00:00",
+    "sound_id": "v1.proximity_generic"
   }
 }

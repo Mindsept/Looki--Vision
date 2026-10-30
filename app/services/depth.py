@@ -172,6 +172,7 @@ class DepthWorker:
                         "threshold_m": self.runtime.settings.near_threshold_m,
                         "nearest_distance_m": min(d["distance_m"] for d in near),
                         "detections": near,
+                        **self.proximity.audio_fields(frame.captured_at, near),
                     },
                     frame_id=frame.id,
                 )

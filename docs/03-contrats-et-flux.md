@@ -2,6 +2,8 @@
 
 Sources Mermaid : [ingestion et alerte](diagrams/06-ingestion-et-alerte.mmd), [questions](diagrams/07-questions-websocket.mmd), [reconnexion](diagrams/08-reconnexion-websocket.mmd).
 
+**Mise à jour du 30 octobre 2026 :** les contrats [Pi PNG](../contracts/raspberry-backend.md), [mobile HTTP](../contracts/mobile-backend.md), [accès](../contracts/session-access.md) et [alertes WSS](../contracts/alerts.md) sont normatifs.
+
 ## Vue des échanges
 
 ```mermaid
@@ -20,7 +22,7 @@ sequenceDiagram
     iOS->>API: Ouvrir WS avec after et Bearer
     API-->>iOS: État initial puis journal
     Note over Pi,iOS: Le scénario de démonstration partage le session_id
-    Pi->>API: POST image JPEG, frame_id, timestamp
+    Pi->>API: POST image PNG, frame_id, timestamp
     API->>DB: Image pending
     API-->>Pi: 202 Accepted
     Worker->>DB: Lire et réserver une image
@@ -28,7 +30,7 @@ sequenceDiagram
     Worker->>DB: Résultat et événements en une transaction
     API->>DB: Lire les événements après le curseur
     API-->>iOS: frame.analyzed puis alerte éventuelle
-    iOS->>iOS: TTS et écouteurs
+    iOS->>iOS: Clip local selon sound_id
 ```
 
 Les endpoints et structures complètes sont dans [le contrat partagé](../contracts/README.md) et l’OpenAPI. Cette page décrit leur comportement et leurs garanties.
@@ -44,14 +46,14 @@ flowchart TD
     Existing -->|Oui| Equal{Même empreinte et instant ?}
     Equal -->|Oui| Previous[200 — état actuel de l’image existante]
     Equal -->|Non| Conflict[409 — frame_id_conflict]
-    Existing -->|Non| Decode[Décoder et vérifier le vrai JPEG]
+    Existing -->|Non| Decode[Décoder et vérifier le vrai PNG ou JPEG]
     Decode --> Active{Session active ?}
     Active -->|Non| Closed[409 — session_closed]
     Active -->|Oui| Fresh{Capture assez récente ?}
     Fresh -->|Non| Timestamp[422 — invalid_timestamp]
     Fresh -->|Oui| Capacity{Capacité disponible ?}
     Capacity -->|Non| Full[429 — queue_full<br/>Retry-After: 1]
-    Capacity -->|Oui| Save[Persister pending et octets JPEG]
+    Capacity -->|Oui| Save[Persister pending et octets PNG ou JPEG]
     Save --> Accepted[202 — traitement asynchrone]
 ```
 
@@ -66,7 +68,7 @@ sequenceDiagram
     participant Pi
     participant API
     participant DB
-    Pi->>Pi: Générer frame_id, timestamp et JPEG une seule fois
+    Pi->>Pi: Générer frame_id, timestamp et PNG une seule fois
     Pi->>API: Première tentative
     API->>DB: Insérer l’image
     API--xPi: Réponse 202 perdue
@@ -121,7 +123,7 @@ stateDiagram-v2
     connecting --> connected: Connexion acceptée
     connected --> connected: État initial avec id null
     connected --> connected: Rejeu puis nouveaux événements
-    connected --> connected: question, answer, ping, pong
+    connected --> connected: événements, ping, pong
     connected --> disconnected: Rupture réseau ou client trop lent
     disconnected --> connecting: Temporisation puis reprise du curseur
 ```
@@ -148,7 +150,7 @@ sequenceDiagram
 
 Le journal est interrogé toutes les `0.2 s` par défaut. Les pages contiennent au plus `100` événements par lecture WebSocket et sont enchaînées immédiatement lorsqu’elles sont pleines. Le flux est livré au moins une fois lorsque le client reprend avec un curseur conservé : il doit gérer les répétitions.
 
-Le rejeu conserve les événements historiques, y compris les anciennes alertes. Avant de vocaliser une alerte comme un danger actuel, le mobile compare son `payload.captured_at` à sa fenêtre de fraîcheur ; une alerte trop ancienne reste dans l’historique mais n’est pas annoncée comme un obstacle présent. La politique audio doit donner priorité aux alertes actuelles. Mémoriser `max(curseur, event.id)` pour les événements durables traités : une répétition explicite de question peut retransmettre une ancienne réponse déjà livrée.
+Le rejeu conserve les événements historiques, y compris les anciennes alertes. Avant de jouer un clip, le mobile vérifie `payload.expires_at`, calculé depuis la capture ; une alerte trop ancienne reste dans l’historique mais n’est pas annoncée comme un obstacle présent. La politique audio doit donner priorité aux alertes actuelles. Mémoriser `max(curseur, event.id)` pour les événements durables traités : une répétition explicite de question peut retransmettre une ancienne réponse déjà livrée.
 
 Les envois concurrents du même socket sont sérialisés. Un envoi qui dépasse `5 s` entraîne l’arrêt du traitement de cette connexion ; les événements durables restent disponibles pour une reprise. Une trame binaire ou trop volumineuse est refusée avec le code WebSocket `1009`. Un Bearer absent/invalide ou une session inconnue est rejeté avant acceptation ; selon le client ASGI, cela apparaît comme un échec du handshake HTTP plutôt qu’une frame de clôture visible `1008`.
 
@@ -170,6 +172,8 @@ flowchart LR
 `after` vaut au minimum `0`. `limit` vaut de `1` à `500`, avec `100` par défaut. La réponse est un tableau brut ; il n’y a pas d’enveloppe `items` ni de champ `next_cursor`. Reprendre avec l’identifiant du dernier événement reçu. Les accès sont filtrés par session.
 
 ## Questions et idempotence
+
+Le mobile utilise maintenant [le cycle HTTP durable](../contracts/mobile-backend.md). Le schéma ci-dessous décrit uniquement le **diagnostic WSS opérateur historique**, conservé pour les fixtures ; il ne décrit pas Realtime.
 
 ```mermaid
 flowchart TD
@@ -199,7 +203,7 @@ Le backend ne déduit pas encore l’intention de la question. Il retourne les d
 | `404` | Session, image ou centre inconnu | Vérifier les identifiants |
 | `409` | Session fermée ou identité de capture réutilisée différemment | Corriger le parcours ou l’identité de capture |
 | `413` | Trop d’octets ou trop de pixels | Réduire l’image côté Pi |
-| `415` | Partie non JPEG ou format d’image différent | Envoyer un vrai JPEG avec le bon MIME |
+| `415` | Format non PNG/JPEG ou MIME différent | Envoyer une vraie image avec le bon MIME |
 | `422` | Champs invalides, image illisible ou horodatage hors fenêtre | Corriger la donnée source |
 | `429` | File globale pleine | Respecter `Retry-After: 1` et réduire la cadence |
 | `503` | Contexte centres indisponible ou readiness en échec | Examiner la dépendance concernée |

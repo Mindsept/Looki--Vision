@@ -6,7 +6,7 @@ from anyio import CancelScope
 from fastapi import APIRouter, Query, WebSocket, WebSocketDisconnect
 from pydantic import TypeAdapter, ValidationError
 
-from app.core.auth import token_matches
+from app.core.auth import session_role
 from app.core.errors import DomainError
 from app.core.time import utcnow
 from app.schemas.api import Ping, Question, ServerEvent
@@ -23,10 +23,17 @@ async def session_socket(
     ticket: str | None = Query(default=None, max_length=128),
 ):
     runtime = websocket.app.state.runtime
-    if not (
-        token_matches(websocket.headers.get("authorization"), runtime.settings.api_key)
-        or runtime.socket_tickets.consume(ticket, session_id)
-    ):
+    try:
+        role = (
+            "mobile"
+            if runtime.socket_tickets.consume(ticket, session_id)
+            else session_role(
+                websocket.headers.get("authorization"), runtime.settings.api_key, session_id
+            )
+        )
+        if role == "pi":
+            raise DomainError(403, "session_forbidden", "Canal réservé au mobile.")
+    except DomainError:
         await websocket.close(code=1008)
         return
     try:
@@ -81,13 +88,21 @@ async def session_socket(
                 event = client_event.validate_python(json.loads(raw))
                 if isinstance(event, Ping):
                     await transient("pong", {})
-                else:
+                elif role == "operator":
                     answer, duplicate = await runtime.questions.answer(session_id, event)
                     if duplicate and answer.id <= cursor:
                         # Never overtake earlier undelivered alerts. Unsent answers
                         # go through publish(); replay only already-delivered ids.
                         # Mobile keeps max(last_cursor, event.id) on old duplicates.
                         await send(answer)
+                else:
+                    await transient(
+                        "error",
+                        {
+                            "code": "http_question_required",
+                            "message": "Utiliser POST /questions pour le parcours audio mobile.",
+                        },
+                    )
             except (ValidationError, ValueError):
                 await transient(
                     "error",

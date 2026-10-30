@@ -52,6 +52,9 @@ class Frame(Base):
     status: Mapped[str] = mapped_column(String(16), default="pending")
     sha256: Mapped[str] = mapped_column(String(64))
     image: Mapped[bytes] = mapped_column(LargeBinary, deferred=True)
+    content_type: Mapped[str] = mapped_column(
+        String(32), default="image/jpeg", server_default="image/jpeg"
+    )
     width: Mapped[int] = mapped_column(Integer)
     height: Mapped[int] = mapped_column(Integer)
     provider: Mapped[str | None] = mapped_column(String(100))

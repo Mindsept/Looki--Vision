@@ -7,6 +7,7 @@ from app.services.analysis import AnalysisWorker
 from app.services.depth import DepthWorker
 from app.services.frames import FrameService
 from app.services.questions import QuestionService
+from app.services.realtime import RealtimeService
 from app.services.sessions import SessionService
 from app.services.socket_tickets import SocketTickets
 
@@ -27,3 +28,5 @@ class Runtime:
         self.frames = FrameService(self)
         self.questions = QuestionService(self)
         self.worker = AnalysisWorker(self)
+        self.realtime = RealtimeService(self)
+        self.realtime_task: asyncio.Task | None = None

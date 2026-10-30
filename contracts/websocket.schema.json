@@ -239,6 +239,14 @@
                   "items": {
                     "$ref": "#/$defs/detection"
                   }
+                },
+                "expires_at": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "sound_id": {
+                  "type": "string",
+                  "pattern": "^v1\\.(person|bicycle|car)_(left|front|right)$|^v1\\.proximity_generic$"
                 }
               },
               "required": [
@@ -529,6 +537,14 @@
                     "person-visual-v3",
                     "urban-visual-v4"
                   ]
+                },
+                "expires_at": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "sound_id": {
+                  "type": "string",
+                  "pattern": "^v1\\.(person|bicycle|car)_(left|front|right)$|^v1\\.proximity_generic$"
                 }
               },
               "required": [

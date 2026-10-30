@@ -4,11 +4,15 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI, Request
+from fastapi.exception_handlers import http_exception_handler
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy import text
+from starlette.exceptions import HTTPException
 
 from app.controllers.http import router as http_router
+from app.controllers.mobile import router as mobile_router
 from app.controllers.websocket import router as websocket_router
 from app.core.config import Settings
 from app.core.database import Base
@@ -53,6 +57,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                     else {}
                 ),
             )
+            await runtime.realtime.recover()
+            runtime.realtime_task = asyncio.create_task(
+                runtime.realtime.watchdog(), name="looki-realtime-watchdog"
+            )
             if settings.worker_enabled:
                 await runtime.worker.recover()
                 runtime.worker_task = asyncio.create_task(
@@ -65,6 +73,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                     )
             yield
         finally:
+            if runtime.realtime_task:
+                runtime.realtime_task.cancel()
+                await asyncio.gather(runtime.realtime_task, return_exceptions=True)
+            await runtime.realtime.shutdown()
             if runtime.worker_task:
                 runtime.worker_task.cancel()
                 await asyncio.gather(runtime.worker_task, return_exceptions=True)
@@ -77,7 +89,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         title="LOOKi Backend",
         version="0.1.0",
         lifespan=lifespan,
-        description="POC : ingestion JPEG, proximité et événements iPhone. Un processus serveur par déploiement.",
+        description="POC : ingestion PNG/JPEG, alertes WSS, questions HTTP et contrôle Realtime. Un processus serveur par déploiement.",
     )
     application.add_middleware(BodyLimitMiddleware, max_bytes=settings.max_request_bytes)
 
@@ -85,9 +97,52 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     async def domain_error_handler(request: Request, exc: DomainError):
         return JSONResponse(
             status_code=exc.status,
-            content={"error": {"code": exc.code, "message": exc.message}},
-            headers={"Retry-After": "1"} if exc.status == 429 else None,
+            content={
+                "error": {
+                    "code": exc.code,
+                    "message": exc.message,
+                    "retryable": exc.status in {429, 502, 503, 504} or exc.code == "call_not_ready",
+                    "request_id": exc.request_id,
+                }
+            },
+            headers={"Retry-After": "1"}
+            if exc.status == 429
+            else {"WWW-Authenticate": "Bearer"}
+            if exc.status == 401
+            else None,
         )
+
+    @application.exception_handler(RequestValidationError)
+    async def validation_error(request: Request, exc: RequestValidationError):
+        # Never echo a question, SDP, token or other submitted secret in error bodies.
+        code = (
+            "invalid_sdp"
+            if any("sdp_offer" in e["loc"] for e in exc.errors())
+            else "invalid_request"
+        )
+        return JSONResponse(
+            status_code=422,
+            content={
+                "error": {
+                    "code": code,
+                    "message": "Champs de requête invalides.",
+                    "retryable": False,
+                    "request_id": None,
+                }
+            },
+        )
+
+    @application.exception_handler(HTTPException)
+    async def http_error(request: Request, exc: HTTPException):
+        if (
+            exc.status_code == 413
+            and isinstance(exc.detail, dict)
+            and exc.detail.get("code") == "request_too_large"
+        ):
+            return await domain_error_handler(
+                request, DomainError(413, "request_too_large", "Requête trop volumineuse.")
+            )
+        return await http_exception_handler(request, exc)
 
     @application.get("/health/live", tags=["Health"])
     async def live():
@@ -116,6 +171,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             return JSONResponse(status_code=503, content={"status": "unavailable"})
 
     application.include_router(http_router)
+    application.include_router(mobile_router)
     application.include_router(websocket_router)
     static = Path(__file__).resolve().parent / "static"
     if static.is_dir():

@@ -198,6 +198,7 @@ class AnalysisWorker:
                             "threshold_m": self.runtime.settings.near_threshold_m,
                             "nearest_distance_m": nearest,
                             "detections": close,
+                            **self.proximity.audio_fields(row.captured_at, close),
                         },
                         frame_id=row.id,
                     )
@@ -217,6 +218,7 @@ class AnalysisWorker:
                             "severity": "warning",
                             "ruleset": RULES["version"],
                             "detections": possible,
+                            **self.proximity.audio_fields(row.captured_at, possible),
                         },
                         frame_id=row.id,
                     )
