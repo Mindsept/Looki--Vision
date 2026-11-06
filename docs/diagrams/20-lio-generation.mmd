@@ -1,0 +1,9 @@
+flowchart TD
+    M["iPhone : STT local"] -->|"Question HTTPS"| C["MobileController"]
+    C --> S["RealtimeService : admission et cycle média"]
+    DB[("PostgreSQL : captures et demandes")] -->|"Snapshot de 1 à 3 captures"| S
+    S --> P["OpenAIRealtimeProvider"]
+    P <-->|"WSS sideband du même appel"| O["gpt-realtime-2.1"]
+    O -->|"Audio WebRTC direct"| M
+    S -->|"États et mesures"| DB
+    V["Vision et règles déterministes"] -->|"Alertes WSS prioritaires"| M

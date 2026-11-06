@@ -349,6 +349,8 @@ def test_question_freezes_latest_three_and_retry_never_generates_twice(setup):
 
 def test_completed_generation_remains_busy_until_playback_finishes(setup):
     client, provider, sid = setup
+    # This case isolates media occupancy; rate limiting has its own test.
+    client.app.state.runtime.settings.realtime_question_interval_seconds = 0
     c = call(client, sid)
     scene(client, sid)
     q, _ = question(client, sid, c)

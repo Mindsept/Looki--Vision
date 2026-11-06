@@ -54,8 +54,13 @@ class Settings(BaseSettings):
     alert_ttl_seconds: float = Field(default=3.0, ge=0.5, le=10)
     realtime_enabled: bool = False
     openai_api_key: SecretStr = SecretStr("")
-    realtime_model: str = "gpt-realtime"
-    realtime_voice: str = "marin"
+    realtime_model: str = Field(default="gpt-realtime-2.1", min_length=1, max_length=100)
+    realtime_voice: Literal[
+        "alloy", "ash", "ballad", "coral", "echo", "sage", "shimmer", "verse", "marin", "cedar"
+    ] = "marin"
+    realtime_reasoning_effort: Literal["minimal", "low", "medium", "high", "xhigh"] = "low"
+    realtime_max_output_tokens: int = Field(default=1024, ge=64, le=4096)
+    realtime_question_interval_seconds: float = Field(default=2.0, ge=0, le=60)
     realtime_connect_timeout_seconds: float = Field(default=20, ge=1, le=120)
     realtime_generation_timeout_seconds: float = Field(default=30, ge=1, le=120)
     realtime_playback_timeout_seconds: float = Field(default=60, ge=1, le=300)

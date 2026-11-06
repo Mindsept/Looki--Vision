@@ -1,0 +1,43 @@
+{
+  "session_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+  "request_id": "33333333-3333-4333-8333-333333333333",
+  "call_id": "22222222-2222-4222-8222-222222222222",
+  "media_epoch": 1,
+  "status": "accepted",
+  "context_id": "44444444-4444-4444-8444-444444444444",
+  "transcript": null,
+  "error": null,
+  "playback": {
+    "sequence": 0,
+    "state": "ready",
+    "position_ms": null,
+    "measurement": "unavailable"
+  },
+  "media_status": "reserved",
+  "updated_at": "2026-11-06T12:00:00Z",
+  "sound_id": null,
+  "scene": {
+    "frame_ids": [
+      "55555555-5555-4555-8555-555555555555"
+    ],
+    "frame_count": 1,
+    "partial": true,
+    "simulated": false,
+    "oldest_capture_at": "2026-11-06T11:59:59Z",
+    "newest_capture_at": "2026-11-06T11:59:59Z"
+  },
+  "generation": {
+    "model": "gpt-realtime-2.1",
+    "voice": "marin",
+    "prompt_version": "lio.scene.v1.1",
+    "reasoning_effort": "low",
+    "max_output_tokens": 1024,
+    "requested_at": "2026-11-06T12:00:00Z",
+    "submitted_at": null,
+    "provider_created_at": null,
+    "provider_audio_started_at": null,
+    "finished_at": null,
+    "provider_status": null,
+    "usage": null
+  }
+}

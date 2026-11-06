@@ -1481,6 +1481,125 @@
         }
       }
     },
+    "/api/v1/sessions/{session_id}/assistant": {
+      "get": {
+        "tags": [
+          "Mobile HTTP"
+        ],
+        "summary": "Assistant Configuration",
+        "description": "Local configuration only. This read neither contacts OpenAI nor starts generation.",
+        "operationId": "assistant_configuration_api_v1_sessions__session_id__assistant_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Session Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssistantRead"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          },
+          "504": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Gateway Timeout"
+          }
+        }
+      }
+    },
     "/api/v1/sessions/{session_id}/access-tokens": {
       "post": {
         "tags": [
@@ -1566,6 +1685,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Too Many Requests"
           },
           "503": {
             "content": {
@@ -1686,6 +1815,16 @@
             },
             "description": "Unprocessable Entity"
           },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
           "503": {
             "content": {
               "application/json": {
@@ -1803,6 +1942,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Too Many Requests"
           },
           "503": {
             "content": {
@@ -1922,6 +2071,16 @@
             },
             "description": "Unprocessable Entity"
           },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
           "503": {
             "content": {
               "application/json": {
@@ -2030,6 +2189,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Too Many Requests"
           },
           "503": {
             "content": {
@@ -2151,6 +2320,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Too Many Requests"
           },
           "503": {
             "content": {
@@ -2280,6 +2459,16 @@
             },
             "description": "Unprocessable Entity"
           },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
           "503": {
             "content": {
               "application/json": {
@@ -2407,6 +2596,16 @@
               }
             },
             "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Too Many Requests"
           },
           "503": {
             "content": {
@@ -2536,6 +2735,16 @@
             },
             "description": "Unprocessable Entity"
           },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
           "503": {
             "content": {
               "application/json": {
@@ -2606,6 +2815,72 @@
           "expires_in_seconds"
         ],
         "title": "AccessTokens"
+      },
+      "AssistantRead": {
+        "properties": {
+          "configuration_status": {
+            "type": "string",
+            "enum": [
+              "disabled",
+              "missing_key",
+              "configured"
+            ],
+            "title": "Configuration Status",
+            "description": "Local configuration only; configured does not prove provider access or audio readiness."
+          },
+          "input_mode": {
+            "type": "string",
+            "const": "local_stt_text",
+            "title": "Input Mode",
+            "default": "local_stt_text"
+          },
+          "model": {
+            "type": "string",
+            "title": "Model"
+          },
+          "voice": {
+            "type": "string",
+            "title": "Voice"
+          },
+          "prompt_version": {
+            "type": "string",
+            "title": "Prompt Version"
+          },
+          "reasoning_effort": {
+            "type": "string",
+            "title": "Reasoning Effort"
+          },
+          "max_output_tokens": {
+            "type": "integer",
+            "title": "Max Output Tokens"
+          },
+          "scene_max_age_seconds": {
+            "type": "number",
+            "title": "Scene Max Age Seconds"
+          },
+          "max_scene_images": {
+            "type": "integer",
+            "const": 3,
+            "title": "Max Scene Images",
+            "default": 3
+          },
+          "question_interval_seconds": {
+            "type": "number",
+            "title": "Question Interval Seconds"
+          }
+        },
+        "type": "object",
+        "required": [
+          "configuration_status",
+          "model",
+          "voice",
+          "prompt_version",
+          "reasoning_effort",
+          "max_output_tokens",
+          "scene_max_age_seconds",
+          "question_interval_seconds"
+        ],
+        "title": "AssistantRead"
       },
       "Body_ingest_frame_api_v1_sessions__session_id__frames_post": {
         "properties": {
@@ -3048,6 +3323,121 @@
         ],
         "title": "FrameRead"
       },
+      "GenerationRead": {
+        "properties": {
+          "model": {
+            "type": "string",
+            "title": "Model"
+          },
+          "voice": {
+            "type": "string",
+            "title": "Voice"
+          },
+          "prompt_version": {
+            "type": "string",
+            "title": "Prompt Version"
+          },
+          "reasoning_effort": {
+            "type": "string",
+            "title": "Reasoning Effort"
+          },
+          "max_output_tokens": {
+            "type": "integer",
+            "title": "Max Output Tokens"
+          },
+          "requested_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Requested At"
+          },
+          "submitted_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Submitted At"
+          },
+          "provider_created_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Provider Created At"
+          },
+          "provider_audio_started_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Provider Audio Started At",
+            "description": "Server receipt of provider buffer-start event; not sound heard on iPhone."
+          },
+          "finished_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finished At"
+          },
+          "provider_status": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "completed",
+                  "cancelled",
+                  "failed",
+                  "incomplete"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Provider Status"
+          },
+          "usage": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TokenUsage"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "model",
+          "voice",
+          "prompt_version",
+          "reasoning_effort",
+          "max_output_tokens",
+          "requested_at"
+        ],
+        "title": "GenerationRead"
+      },
       "MobileQuestion": {
         "properties": {
           "call_id": {
@@ -3286,6 +3676,27 @@
               }
             ],
             "title": "Sound Id"
+          },
+          "scene": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SceneSummary"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "generation": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/GenerationRead"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Configuration and server observations. Null for pre-v1.3 history."
           }
         },
         "type": "object",
@@ -3303,6 +3714,52 @@
           "updated_at"
         ],
         "title": "QuestionRead"
+      },
+      "SceneSummary": {
+        "properties": {
+          "frame_ids": {
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "type": "array",
+            "title": "Frame Ids"
+          },
+          "frame_count": {
+            "type": "integer",
+            "maximum": 3.0,
+            "minimum": 1.0,
+            "title": "Frame Count"
+          },
+          "partial": {
+            "type": "boolean",
+            "title": "Partial"
+          },
+          "simulated": {
+            "type": "boolean",
+            "title": "Simulated"
+          },
+          "oldest_capture_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Oldest Capture At"
+          },
+          "newest_capture_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Newest Capture At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "frame_ids",
+          "frame_count",
+          "partial",
+          "simulated",
+          "oldest_capture_at",
+          "newest_capture_at"
+        ],
+        "title": "SceneSummary"
       },
       "ServerEvent": {
         "properties": {
@@ -3438,6 +3895,156 @@
           "context"
         ],
         "title": "SessionRead"
+      },
+      "TokenUsage": {
+        "properties": {
+          "total_tokens": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total Tokens"
+          },
+          "input_tokens": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Input Tokens"
+          },
+          "output_tokens": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Output Tokens"
+          },
+          "input_text_tokens": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Input Text Tokens"
+          },
+          "input_image_tokens": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Input Image Tokens"
+          },
+          "input_audio_tokens": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Input Audio Tokens"
+          },
+          "input_cached_tokens": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Input Cached Tokens"
+          },
+          "cached_text_tokens": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cached Text Tokens"
+          },
+          "cached_image_tokens": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cached Image Tokens"
+          },
+          "cached_audio_tokens": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cached Audio Tokens"
+          },
+          "output_text_tokens": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Output Text Tokens"
+          },
+          "output_audio_tokens": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Output Audio Tokens"
+          }
+        },
+        "type": "object",
+        "title": "TokenUsage"
       }
     },
     "securitySchemes": {

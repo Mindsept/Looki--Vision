@@ -105,6 +105,63 @@ class CancelRequest(MediaIdentity):
     ]
 
 
+class AssistantRead(BaseModel):
+    configuration_status: Literal["disabled", "missing_key", "configured"] = Field(
+        description="Local configuration only; configured does not prove provider access or audio readiness."
+    )
+    input_mode: Literal["local_stt_text"] = "local_stt_text"
+    model: str
+    voice: str
+    prompt_version: str
+    reasoning_effort: str
+    max_output_tokens: int
+    scene_max_age_seconds: float
+    max_scene_images: Literal[3] = 3
+    question_interval_seconds: float
+
+
+class TokenUsage(BaseModel):
+    total_tokens: int | None = Field(default=None, ge=0)
+    input_tokens: int | None = Field(default=None, ge=0)
+    output_tokens: int | None = Field(default=None, ge=0)
+    input_text_tokens: int | None = Field(default=None, ge=0)
+    input_image_tokens: int | None = Field(default=None, ge=0)
+    input_audio_tokens: int | None = Field(default=None, ge=0)
+    input_cached_tokens: int | None = Field(default=None, ge=0)
+    cached_text_tokens: int | None = Field(default=None, ge=0)
+    cached_image_tokens: int | None = Field(default=None, ge=0)
+    cached_audio_tokens: int | None = Field(default=None, ge=0)
+    output_text_tokens: int | None = Field(default=None, ge=0)
+    output_audio_tokens: int | None = Field(default=None, ge=0)
+
+
+class GenerationRead(BaseModel):
+    model: str
+    voice: str
+    prompt_version: str
+    reasoning_effort: str
+    max_output_tokens: int
+    requested_at: datetime
+    submitted_at: datetime | None = None
+    provider_created_at: datetime | None = None
+    provider_audio_started_at: datetime | None = Field(
+        default=None,
+        description="Server receipt of provider buffer-start event; not sound heard on iPhone.",
+    )
+    finished_at: datetime | None = None
+    provider_status: Literal["completed", "cancelled", "failed", "incomplete"] | None = None
+    usage: TokenUsage | None = None
+
+
+class SceneSummary(BaseModel):
+    frame_ids: list[UUID]
+    frame_count: int = Field(ge=1, le=3)
+    partial: bool
+    simulated: bool
+    oldest_capture_at: datetime
+    newest_capture_at: datetime
+
+
 class QuestionRead(BaseModel):
     session_id: UUID
     request_id: UUID
@@ -118,6 +175,11 @@ class QuestionRead(BaseModel):
     media_status: Literal["reserved", "playing", "stopping", "closed"]
     updated_at: datetime
     sound_id: str | None = None
+    scene: SceneSummary | None = None
+    generation: GenerationRead | None = Field(
+        default=None,
+        description="Configuration and server observations. Null for pre-v1.3 history.",
+    )
 
 
 class AccessTokens(BaseModel):

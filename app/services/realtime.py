@@ -13,10 +13,12 @@ from sqlalchemy import select
 from app.core.errors import DomainError
 from app.core.time import as_utc, utcnow
 from app.models import AudioQuestion, RealtimeCall
+from app.providers.lio_prompt import PROMPT_VERSION
 from app.providers.realtime import OpenAIRealtimeProvider
 from app.repositories.realtime import RealtimeRepository
 from app.repositories.sessions import SessionRepository
-from app.schemas.mobile import CallRead, QuestionRead
+from app.schemas.mobile import AssistantRead, CallRead, QuestionRead
+from app.services.generation_metrics import generation_snapshot, response_transcript, token_usage
 from app.services.scene_context import freeze_scene, image_input, snapshot_images
 from app.services.sessions import require_session
 
@@ -33,6 +35,7 @@ def error(code, request_id=None):
             "timeout": "Délai dépassé ; négocier un nouvel appel après fermeture.",
             "provider_unavailable": "Service vocal indisponible.",
             "control_unavailable": "Contrôle audio perdu ; fermer la lecture locale.",
+            "generation_incomplete": "Réponse interrompue avant sa fin ; ne pas la présenter comme complète.",
         }.get(code, "Service vocal indisponible."),
         "retryable": code != "scene_unavailable",
         "request_id": str(request_id) if request_id else None,
@@ -53,6 +56,7 @@ def call_read(row):
 
 
 def question_read(row):
+    frames = (row.context or {}).get("frames", [])
     return QuestionRead(
         session_id=row.session_id,
         request_id=row.request_id,
@@ -66,6 +70,17 @@ def question_read(row):
         media_status=row.media_status,
         updated_at=as_utc(row.updated_at),
         sound_id="v1.scene_unavailable" if row.status == "unavailable" else None,
+        generation=row.generation,
+        scene={
+            "frame_ids": [frame["frame_id"] for frame in frames],
+            "frame_count": len(frames),
+            "partial": len(frames) < 3,
+            "simulated": any(frame["simulated"] for frame in frames),
+            "oldest_capture_at": min(frame["captured_at"] for frame in frames),
+            "newest_capture_at": max(frame["captured_at"] for frame in frames),
+        }
+        if frames
+        else None,
     )
 
 
@@ -103,6 +118,24 @@ class RealtimeService:
             raise DomainError(
                 503, "provider_unavailable", "Configurer le service Realtime côté serveur."
             )
+
+    async def configuration(self, session_id):
+        async with self.runtime.db.sessions() as db:
+            await require_session(SessionRepository(db), session_id)
+        return AssistantRead(
+            configuration_status="disabled"
+            if not self.settings.realtime_enabled
+            else (
+                "configured" if self.settings.openai_api_key.get_secret_value() else "missing_key"
+            ),
+            model=self.settings.realtime_model,
+            voice=self.settings.realtime_voice,
+            prompt_version=PROMPT_VERSION,
+            reasoning_effort=self.settings.realtime_reasoning_effort,
+            max_output_tokens=self.settings.realtime_max_output_tokens,
+            scene_max_age_seconds=self.settings.scene_max_age_seconds,
+            question_interval_seconds=self.settings.realtime_question_interval_seconds,
+        )
 
     async def create_call(self, session_id, data):
         offer_hash = hashlib.sha256(data.sdp_offer.encode()).hexdigest()
@@ -216,6 +249,16 @@ class RealtimeService:
                 raise DomainError(
                     409, "answer_active", "Une demande occupe encore la sortie audio."
                 )
+            previous_at = await repo.latest_question_at(session_id)
+            if previous_at and (received_at - as_utc(previous_at)).total_seconds() < (
+                self.settings.realtime_question_interval_seconds
+            ):
+                raise DomainError(
+                    429,
+                    "question_rate_limited",
+                    "Espacer les nouvelles questions.",
+                    request_id=data.request_id,
+                )
             context = await freeze_scene(
                 db,
                 session_id,
@@ -231,6 +274,8 @@ class RealtimeService:
                     call_id=data.call_id,
                     media_epoch=data.media_epoch,
                     text=data.text,
+                    created_at=received_at,
+                    generation=generation_snapshot(self.settings, received_at),
                     context=context,
                     context_id=UUID(context["context_id"]) if context else None,
                     status="accepted" if context else "unavailable",
@@ -275,6 +320,7 @@ class RealtimeService:
                         )
                         return
                     row.status, row.updated_at = "generating", utcnow()
+                    row.generation = {**row.generation, "submitted_at": row.updated_at.isoformat()}
                 # Persist generating before sending. No automatic replay after an uncertain send.
                 await self.provider.generate(self.sockets[call_id], row, images)
         except asyncio.CancelledError:
@@ -425,10 +471,12 @@ class RealtimeService:
 
     async def handle_event(self, call_id, event):
         kind, failed = event.get("type"), False
+        failure_code = "provider_unavailable"
         if kind not in {
             "response.created",
             "response.done",
             "response.output_audio_transcript.done",
+            "output_audio_buffer.started",
             "error",
         }:
             return  # Audio bytes never leave this adapter as LOOKi payloads.
@@ -441,7 +489,7 @@ class RealtimeService:
             if kind == "response.created":
                 if (
                     row is None
-                    or response.get("metadata", {}).get("request_id") != str(row.request_id)
+                    or (response.get("metadata") or {}).get("request_id") != str(row.request_id)
                     or row.status != "generating"
                 ):
                     failed = True  # Unexpected generation from a client data channel.
@@ -449,6 +497,10 @@ class RealtimeService:
                     failed = True
                 else:
                     row.provider_response_id = response["id"]
+                    row.generation = {
+                        **(row.generation or {}),
+                        "provider_created_at": utcnow().isoformat(),
+                    }
             elif kind == "error":
                 failed = True
             elif (
@@ -456,18 +508,36 @@ class RealtimeService:
             ):
                 if kind == "response.output_audio_transcript.done":
                     row.transcript = str(event.get("transcript", ""))[:8000]
+                elif kind == "output_audio_buffer.started":
+                    if row.generation and not row.generation.get("provider_audio_started_at"):
+                        row.generation = {
+                            **row.generation,
+                            "provider_audio_started_at": utcnow().isoformat(),
+                        }
                 elif kind == "response.done" and row.status not in TERMINAL:
+                    provider_status = response.get("status")
+                    row.generation = {
+                        **(row.generation or {}),
+                        "finished_at": utcnow().isoformat(),
+                        "provider_status": provider_status
+                        if provider_status in {"completed", "cancelled", "failed", "incomplete"}
+                        else "failed",
+                        "usage": token_usage(response.get("usage")),
+                    }
+                    row.transcript = response_transcript(response) or row.transcript
                     row.status = {"completed": "completed", "cancelled": "cancelled"}.get(
-                        response.get("status"), "failed"
+                        provider_status, "failed"
                     )
                     row.deadline_at = utcnow() + timedelta(
                         seconds=self.settings.realtime_playback_timeout_seconds
                     )
                     if row.status != "completed":
                         failed = True
+                        if provider_status == "incomplete":
+                            failure_code = "generation_incomplete"
                 row.updated_at = utcnow()
         if failed:
-            await self._fail_call(call_id, "provider_unavailable")
+            await self._fail_call(call_id, failure_code)
 
     async def _fail_call(self, call_id, code):
         async with self.runtime.write_lock, self.runtime.db.sessions() as db, db.begin():

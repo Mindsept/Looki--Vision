@@ -36,6 +36,10 @@ async def test_real_adapter_signaling_and_hangup_use_expected_provider_contract(
     assert b'name="sdp"' in request.content and b'name="session"' in request.content
     assert b'"turn_detection": null' in request.content
     assert b'"output_modalities": ["audio"]' in request.content
+    assert b'"model": "gpt-realtime-2.1"' in request.content
+    assert b'"reasoning": {"effort": "low"}' in request.content
+    assert b'"max_output_tokens": 1024' in request.content
+    assert b'"tool_choice": "none"' in request.content
     await provider.hangup(call_id)
     assert requests[-1].url.path == "/v1/realtime/calls/rtc_test/hangup"
     await provider.close()
@@ -69,6 +73,9 @@ async def test_real_adapter_attaches_same_call_and_waits_for_configuration_ack(m
     assert event["type"] == "response.create"
     assert event["response"]["conversation"] == "none"
     assert event["response"]["metadata"]["request_id"] == str(q.request_id)
+    assert event["response"]["metadata"]["prompt_version"] == "lio.scene.v1.1"
+    assert "Vue partielle" in event["response"]["instructions"]
+    assert event["response"]["reasoning"] == {"effort": "low"}
     assert event["response"]["input"][0]["content"][-1] == image
     await provider.interrupt(socket, "resp_test")
     assert [e["type"] for e in socket.sent[-2:]] == ["response.cancel", "output_audio_buffer.clear"]

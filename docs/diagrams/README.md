@@ -37,3 +37,5 @@ Vérifier les entités contre `app/models/entities.py` et les migrations, les cl
 Lors d’un changement de code, mettre à jour le `.mmd` concerné et les explications ou schémas intégrés au chapitre correspondant. Les commandes de tous les guides supposent la racine Git `backend/`, où se trouvent aussi `README.md`, `compose.yaml` et `.env.example`.
 
 - [17 — Cycle Realtime](17-mobile-realtime.mmd) et [18 — Classes Realtime](18-classes-realtime.mmd) : [chapitre 15](../15-mobile-realtime-et-pi.md).
+
+- [20 — Génération Lio](20-lio-generation.mmd) et [21 — Mesures](21-lio-mesures.mmd) : [configuration et recette OpenAI](../16-lio-openai.md).

@@ -1,0 +1,15 @@
+sequenceDiagram
+    participant M as Mobile
+    participant B as Backend
+    participant O as OpenAI
+    M->>B: Question, sortie préparée
+    Note over B: requested_at puis submitted_at
+    B->>O: response.create
+    O-->>B: response.created
+    Note over B: provider_created_at
+    O-->>M: Audio WebRTC
+    O-->>B: output_audio_buffer.started si reçu
+    Note over B: provider_audio_started_at observé
+    O-->>B: response.done et usage
+    Note over B: finished_at, completed ou failed
+    M->>B: playback finished après sortie locale vidée

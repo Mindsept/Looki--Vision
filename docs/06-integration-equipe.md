@@ -51,7 +51,7 @@ Le `session_id` est fourni aux deux clients par le parcours de démonstration. A
 
 ## iPhone ↔ backend
 
-Leandro suit le [contrat HTTP et Realtime](../contracts/mobile-backend.md), après le [provisionnement](../contracts/session-access.md). Le backend est implémenté et testé avec transport fournisseur contrôlé ; l’intégration WebRTC native et la recette audio restent à réaliser sur iPhone.
+Leandro suit le [contrat HTTP et Realtime](../contracts/mobile-backend.md), après le [provisionnement](../contracts/session-access.md). Les tests avec transport contrôlé sont complétés par une [recette OpenAI réelle dans le navigateur](17-recette-lio.md) ; l’intégration WebRTC native et la recette audio restent à réaliser sur iPhone.
 
 1. Recevoir le token mobile de la même session que le Pi.
 2. Ouvrir le [WSS des alertes](../contracts/alerts.md), conserver le curseur et ignorer les alertes expirées.

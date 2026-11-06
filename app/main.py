@@ -1,5 +1,4 @@
 import asyncio
-import logging
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -17,6 +16,7 @@ from app.controllers.websocket import router as websocket_router
 from app.core.config import Settings
 from app.core.database import Base
 from app.core.errors import DomainError
+from app.core.logging import configure_logging
 from app.core.middleware import BodyLimitMiddleware
 from app.core.runtime import Runtime
 from app.vision import create_provider
@@ -29,7 +29,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     async def lifespan(application):
         runtime = Runtime(settings)
         application.state.runtime = runtime
-        logging.basicConfig(level=logging.INFO)
+        configure_logging()
         try:
             if settings.create_schema:
                 async with runtime.db.engine.begin() as connection:

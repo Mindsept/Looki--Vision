@@ -1,6 +1,6 @@
 # LOOKi — Documentation du backend principal
 
-Ce dossier décrit le prototype livré à la racine de ce dépôt (`backend/` dans le workspace LOOKi) : réception des JPEG du Raspberry Pi, analyse asynchrone, classement de proximité, alertes et échanges textuels avec l’iPhone. Les schémas représentent le code de cette première version. Les fonctions prévues pour une phase ultérieure sont explicitement identifiées.
+Ce dossier décrit le prototype livré à la racine de ce dépôt (`backend/` dans le workspace LOOKi) : réception des JPEG du Raspberry Pi, analyse asynchrone, proximité et alertes, questions HTTP et audio OpenAI direct vers l’iPhone. Les fonctions prévues pour une phase ultérieure sont explicitement identifiées ; les anciennes campagnes de validation restent datées.
 
 ```mermaid
 flowchart TD
@@ -37,7 +37,9 @@ flowchart TD
 | [12 — Segmentation et suivi](12-segmentation-suivi.md) | Masques, ByteTrack, indices contradictoires, classes, persistance et tests CPU | Backend, Embedded, PO |
 | [13 — Profondeur indépendante](13-profondeur-independante.md) | Deux cadences, tendance de taille, mémoire du risque, reprise et mesures à 4 CPU | Backend, Embedded, iPhone, PO |
 | [14 — Proximité urbaine](14-proximite-urbaine.md) | Profils personnes/vélos/voitures, détection, motifs et tests à 4 CPU | Backend, Embedded, iPhone, PO |
-| [15 — Mobile Realtime et Pi](15-mobile-realtime-et-pi.md) | Contrats v1.1, classes, tables et limites de validation | Mobile, Embedded, backend |
+| [15 — Mobile Realtime et Pi](15-mobile-realtime-et-pi.md) | Contrats, classes, tables et limites de validation | Mobile, Embedded, backend |
+| [16 — Lio OpenAI](16-lio-openai.md) | Realtime 2.1, STT local, configuration, banc audio, métriques et purge | Backend, mobile, exploitation |
+| [17 — Recette Lio](17-recette-lio.md) | Appels OpenAI réels, interruption, mesures, tests logiciels et limites de validation | Backend, mobile, PO |
 
 Les formats échangeables se trouvent dans [`../contracts/`](../contracts/README.md). La spécification HTTP est publiée à l’exécution sur `/openapi.json` et `/docs`. Le schéma WebSocket complète OpenAPI, qui ne décrit pas les messages échangés sur une connexion ouverte.
 

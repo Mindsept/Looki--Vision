@@ -56,7 +56,7 @@ docker compose down
 
 ## Intégrer le Pi et le mobile
 
-Les contrats v1.2 sont synchronisés avec le dépôt de documentation d’équipe :
+Le contrat mobile v1.3 et le contrat Pi JPEG v1.2 sont synchronisés avec le dépôt de documentation d’équipe :
 
 - [Raspberry Pi → backend : JPEG, cadence, erreurs et réessais](contracts/raspberry-backend.md).
 - [Session partagée et jetons distincts Pi/mobile](contracts/session-access.md).
@@ -64,9 +64,20 @@ Les contrats v1.2 sont synchronisés avec le dépôt de documentation d’équip
 - [Alertes WSS, expiration et catalogue des clips](contracts/alerts.md).
 - [Architecture, classes et nouvelles tables](docs/15-mobile-realtime-et-pi.md).
 
-La vision réelle reste le profil par défaut. **Realtime est désactivé tant que vous n’avez pas configuré une clé serveur** : ajouter `LOOKI_REALTIME_ENABLED=true` et `LOOKI_OPENAI_API_KEY` dans le `.env` privé, puis recréer le backend. Modèle initial `gpt-realtime`, voix `marin`. Ne jamais distribuer cette clé aux appareils. Aucun faux audio ne remplace une clé absente : la création d’appel retourne `503`, la vision continue.
+La vision réelle reste le profil par défaut. **Realtime est désactivé tant que vous n’avez pas configuré une clé serveur** : ajouter `LOOKI_REALTIME_ENABLED=true` et `LOOKI_OPENAI_API_KEY` dans le `.env` privé, puis recréer le backend. Modèle `gpt-realtime-2.1`, voix `marin`, effort `low`, budget de 1024 tokens. Ne jamais distribuer cette clé aux appareils. Aucun faux audio ne remplace une clé absente : la création d’appel retourne `503`, la vision continue.
 
-L’opérateur crée la session et appelle `/access-tokens` pour transmettre un jeton propre à chaque appareil. Le Pi utilise `scripts/pi_upload.py` pour un premier JPEG, comme le front `/live/`. La bibliothèque WebRTC iOS, les clips et le test audio physique restent à intégrer côté mobile. Les tests fournisseur automatisés utilisent un transport contrôlé, pas une connexion OpenAI réelle.
+L’opérateur crée la session et appelle `/access-tokens` pour transmettre un jeton propre à chaque appareil. Le Pi utilise `scripts/pi_upload.py` pour un premier JPEG, comme le front `/live/`. La bibliothèque WebRTC iOS, les clips et le test audio physique restent à intégrer côté mobile. La suite de tests utilise un transport contrôlé ; le banc opt-in permet une connexion OpenAI réelle et facturable. Voir la [configuration et la recette Lio](docs/16-lio-openai.md).
+
+## Activer Lio et tester le vrai audio
+
+Dans le `.env` privé : renseigner `LOOKI_OPENAI_API_KEY`, puis `LOOKI_REALTIME_ENABLED=true`. Les autres réglages Realtime figurent dans `.env.example` et traversent Compose. Le STT reste local sur iPhone ; aucune piste micro ne part chez OpenAI.
+
+```sh
+docker compose up --build -d backend
+docker compose exec backend python scripts/check_realtime.py --remote
+```
+
+Ouvrir [le banc Lio](http://127.0.0.1:8000/live/?assistant=1), préparer une session avec `uv run python scripts/prepare_assistant_session.py`, puis utiliser les jetons du fichier privé `output/assistant-session.json`. Une question déclenche la génération sur des images sélectionnées et le vrai média WebRTC. Le banc permet le rejeu de JPEG réels et montre les captures, états et mesures ; il ne remplace pas la recette iPhone/écouteurs. [Procédure complète, variables, reprises et purge](docs/16-lio-openai.md).
 
 ## Démonstration
 
@@ -95,7 +106,7 @@ Ce parcours historique, réservé à la clé opérateur, ne valide pas le contra
 │   ├── repositories/     # Accès aux données SQLAlchemy
 │   ├── models/           # Tables SQLAlchemy
 │   ├── core/             # Configuration, DB, authentification, runtime
-│   ├── providers/        # Contexte centres : JSON local ou REST
+│   ├── providers/        # OpenAI Realtime, instructions Lio et contexte centres
 │   └── vision/           # Mock, Depth Anything, UniDepthV2, YOLO26n, RT-DETR, calibration
 ├── alembic/              # Migrations PostgreSQL
 ├── calibration/          # Calibration réelle de caméra, montée en lecture seule

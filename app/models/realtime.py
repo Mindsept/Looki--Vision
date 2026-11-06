@@ -69,6 +69,7 @@ class AudioQuestion(Base):
     context: Mapped[dict | None] = mapped_column(JSON)
     provider_response_id: Mapped[str | None] = mapped_column(String(200))
     transcript: Mapped[str | None] = mapped_column(Text)
+    generation: Mapped[dict | None] = mapped_column(JSON)
     error: Mapped[dict | None] = mapped_column(JSON)
     playback: Mapped[dict] = mapped_column(JSON, default=lambda: {"sequence": 0, "state": "ready"})
     deadline_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))

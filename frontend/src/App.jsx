@@ -124,6 +124,7 @@ export default function App() {
           VISION LAB <span>/</span> 01
         </span>
         <div className="topbar-right">
+          <a href="/live/?assistant=1">Lio · banc audio</a>
           <span className={`connection ${connected ? "on" : ""}`}>
             <i />
             {connected

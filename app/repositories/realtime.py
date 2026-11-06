@@ -52,6 +52,11 @@ class RealtimeRepository:
             )
         )
 
+    async def latest_question_at(self, session_id):
+        return await self.db.scalar(
+            select(func.max(AudioQuestion.created_at)).where(AudioQuestion.session_id == session_id)
+        )
+
     async def add(self, row):
         self.db.add(row)
         await self.db.flush()

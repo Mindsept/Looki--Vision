@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, Request, Response
 from app.core.auth import issue_session_token, require_auth
 from app.schemas.mobile import (
     AccessTokens,
+    AssistantRead,
     CallCreate,
     CallRead,
     CancelRequest,
@@ -19,8 +20,15 @@ router = APIRouter(
     prefix="/api/v1/sessions/{session_id}",
     dependencies=[Depends(require_auth)],
     tags=["Mobile HTTP"],
-    responses={code: {"model": ErrorEnvelope} for code in (401, 403, 404, 409, 422, 503, 504)},
+    responses={code: {"model": ErrorEnvelope} for code in (401, 403, 404, 409, 422, 429, 503, 504)},
 )
+
+
+@router.get("/assistant", response_model=AssistantRead)
+async def assistant_configuration(session_id: UUID, request: Request, response: Response):
+    """Local configuration only. This read neither contacts OpenAI nor starts generation."""
+    response.headers["Cache-Control"] = "no-store"
+    return await request.app.state.runtime.realtime.configuration(session_id)
 
 
 @router.post("/access-tokens", response_model=AccessTokens)

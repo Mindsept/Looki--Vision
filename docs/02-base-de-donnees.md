@@ -101,6 +101,7 @@ erDiagram
         uuid context_id "nullable"
         json context "snapshot fige"
         json playback
+        json generation
         text transcript "nullable"
         json error
         timestamptz deadline_at
@@ -271,7 +272,7 @@ stateDiagram-v2
 
 La clôture ne supprime pas la session ni son historique. Les images déjà acceptées peuvent terminer leur traitement. Les nouveaux uploads et les nouvelles questions sont refusés ; la lecture et la reprise des événements restent disponibles.
 
-Les relations SQL ont des cascades de suppression, mais aucune route de suppression ni tâche de purge n’est livrée. Supprimer une session directement en base supprimerait ses images, observations et événements associés. Le dimensionnement, la rétention et le droit d’accès par utilisateur restent des travaux à mener avant une exploitation multiutilisateur.
+Certaines relations vision ont des cascades ; les appels et demandes audio imposent un ordre de suppression explicite. La [procédure administrative de purge](16-lio-openai.md#conservation-logs-et-déploiement) supprime les sessions fermées éligibles et leurs données dans une transaction. Aucune route de suppression ni purge automatique n’est exposée. Le dimensionnement, la rétention et le droit d’accès par utilisateur restent des travaux à mener avant une exploitation multiutilisateur.
 
 La migration `b84e901df8ac` ajoute `detections.perception JSON NOT NULL DEFAULT '{}'` : masques normalisés, piste temporaire, risque et indices. Aucun état interne du tracker n’est persisté. Voir [segmentation et suivi](12-segmentation-suivi.md).
 
@@ -301,3 +302,7 @@ Les transactions s’achèvent avant chaque opération fournisseur. Un envoi inc
 ### Format de capture v1.2
 
 Les nouveaux uploads sont exclusivement JPEG. La colonne `content_type` et la migration existante sont conservées : les anciennes captures PNG restent restituées telles quelles avec `image/png`. Aucun changement de schéma ni réencodage des données historiques n’est nécessaire. Le modèle reçoit des miniatures JPEG, y compris lorsqu’une capture historique est sélectionnée.
+
+### Mesures Lio v1.3
+
+La migration `e64b92a01c38` ajoute `audio_questions.generation`, JSON nullable. Chaque nouvelle question y fige modèle, voix, version du prompt, effort, budget et instant d’admission ; les événements fournisseur ajoutent les dates observées et les compteurs autorisés. Les anciennes demandes conservent `null`. Aucune copie d’audio ou d’image n’est ajoutée. Voir [sémantique des mesures](16-lio-openai.md#mesures--trois-instants-différents).

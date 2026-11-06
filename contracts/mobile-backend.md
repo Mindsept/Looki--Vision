@@ -1,6 +1,6 @@
-# Mobile ↔ backend · Contrat v1.2
+# Mobile ↔ backend · Contrat v1.3
 
-**Livré côté backend le 30 octobre 2026.** Ce document remplace la proposition v1 et constitue le contrat d’intégration pour Leandro et Hamza. Les tests automatisés exercent l’API, la base et un transport fournisseur contrôlé. L’audio réel OpenAI → iPhone reste à valider avec une clé et le SDK iOS ; les tests ne prouvent pas ce parcours matériel.
+**Extension backend du 6 novembre 2026, compatible avec les requêtes v1.2.** Ce document remplace la proposition v1 et constitue le contrat d’intégration pour Leandro et Hamza. Les tests automatisés exercent l’API, la base et un transport fournisseur contrôlé. La recette sur le véritable service OpenAI et celle sur iPhone sont des preuves distinctes ; les tests unitaires ne prouvent pas le parcours matériel. Le STT reste local sur iPhone.
 
 ## Responsabilités
 
@@ -21,6 +21,7 @@ Le microphone n’est pas envoyé au fournisseur. Le data channel WebRTC est ré
 
 | Route | Succès et rôle |
 | --- | --- |
+| `GET /assistant` | `200` : configuration publique de Lio, sans appel fournisseur ni secret |
 | `POST /realtime/calls` | `201 connecting` à la création ; `200` pour la même offre déjà enregistrée |
 | `GET /realtime/calls/current` | `200` : retrouver l’appel non clos après perte de réponse ; `404` si aucun |
 | `GET /realtime/calls/{call_id}` | `200` : contrôle, époque et réponse SDP lorsqu’elle est prête |
@@ -145,15 +146,42 @@ Au redémarrage, les appels non clos deviennent `failed`, les demandes incertain
 | `401`, `403` | Token absent, invalide, expiré ou hors session/rôle ; rétablir le bon accès |
 | `404` | `session_not_found`, `call_not_found`, `request_not_found` |
 | `409` | `request_conflict`, `call_active`, `call_not_ready`, `stale_media_epoch`, `answer_active`, `playback_conflict`, `session_closed` ; résoudre l’état avant une nouvelle demande |
+| `429` | `question_rate_limited` ; espacer les nouvelles demandes, conserver l’UUID lors du réessai |
 | `422` | `invalid_request`, `invalid_sdp` ; corriger les champs ou la taille |
 | `503` | `provider_unavailable` ; configuration/clé absente ou service indisponible |
 
-Les échecs survenus après un POST accepté sont consultables dans `error` de la ressource. `retryable: true` n’autorise jamais à créer automatiquement un nouvel UUID. Les détails et secrets du fournisseur sont masqués. Aucun quota HTTP de questions par seconde n’est implémenté dans cette version ; l’exclusion d’une sortie audio active reste appliquée.
+Les échecs survenus après un POST accepté sont consultables dans `error` de la ressource. `retryable: true` n’autorise jamais à créer automatiquement un nouvel UUID. Les détails et secrets du fournisseur sont masqués. Les nouvelles questions d’une session sont espacées de 2 secondes par défaut (`LOOKI_REALTIME_QUESTION_INTERVAL_SECONDS`). La date de la précédente admission est conservée en SQL, y compris pour une scène indisponible. Les retries exacts sont résolus avant cette limite ; les demandes encore audibles restent refusées avec `answer_active`. Ce contrôle ne remplace pas un limiteur général HTTP.
 
 ## Configuration et intégration restante
 
 Valeurs initiales configurables : connexion fournisseur 20 s ; génération 30 s à partir de l’admission ; attente de fin de lecture 60 s après génération ; appel 900 s depuis création ; scène 3 s ; offre SDP 65 536 caractères. Le contrôle périodique est approximativement à la seconde. Polling mobile conseillé : 250–500 ms pendant une transition, puis espacer. Ces valeurs ne sont pas des garanties de latence.
 
-Le serveur nécessite `LOOKI_REALTIME_ENABLED=true` et `LOOKI_OPENAI_API_KEY` dans son environnement privé. Modèle initial `gpt-realtime`, voix `marin`, configurables ; sortie audio seule, détection vocale automatique désactivée, contexte indépendant par demande (`conversation: none`). Sans clé, la vision et les alertes continuent ; les routes de création vocale répondent `503`.
+Le serveur nécessite `LOOKI_REALTIME_ENABLED=true` et `LOOKI_OPENAI_API_KEY` dans son environnement privé. Modèle `gpt-realtime-2.1`, voix `marin`, effort `low`, budget de 1024 tokens, configurables ; sortie audio seule, détection vocale automatique désactivée, contexte indépendant par demande (`conversation: none`). Sans clé, la vision et les alertes continuent ; les routes de création vocale répondent `503`.
 
 Restent côté app/équipe : SDK WebRTC natif, STT, arbitrage audio et clips locaux, distribution des tokens, test avec écouteurs et vraies interruptions réseau. Côté déploiement : TLS et politique de conservation/purge des images et demandes. Aucune rétention automatique n’est livrée ; les données restent en PostgreSQL jusqu’à purge administrative.
+
+
+## Extension Lio v1.3 : configuration et observations
+
+`GET /assistant` est autorisé au mobile et à l’opérateur de la session, interdit au Pi. Il expose `configuration_status` (`disabled`, `missing_key`, `configured`), `input_mode: local_stt_text`, `model`, `voice`, `prompt_version`, `reasoning_effort`, `max_output_tokens`, `scene_max_age_seconds`, `max_scene_images: 3` et `question_interval_seconds`. `configured` signifie uniquement que l’activation et une clé sont présentes ; cela ne garantit ni l’accès au modèle, ni un sideband prêt, ni l’audio. Ce GET ne crée pas d’appel.
+
+Les réponses POST/GET de question ajoutent deux champs, sans modifier les requêtes existantes :
+
+| Champ | Contenu et sens |
+| --- | --- |
+| `scene` | Résumé du snapshot : `frame_ids`, `frame_count`, `partial`, `simulated`, `oldest_capture_at`, `newest_capture_at`. `null` si aucun snapshot. Les identifiants permettent la consultation authentifiée des captures de la même session. |
+| `generation` | Modèle/voix/version d’instructions/effort/budget figés à l’admission, puis dates observées et usage. `null` pour les anciennes demandes. Présent ne signifie pas qu’un appel génératif a eu lieu. |
+
+Dates de `generation` : `requested_at` (admission), `submitted_at` (intention d’envoi persistée avant I/O), `provider_created_at` (réception de `response.created`), `provider_audio_started_at` (réception éventuelle du début d’émission), `finished_at` (réception de la fin de génération). Elles sont mesurées par le backend ; les dates non observées restent `null`. Aucun de ces champs ne mesure le premier son entendu par la personne. Une intention d’envoi n’en prouve pas la réception par OpenAI.
+
+`provider_status` vaut `completed`, `cancelled`, `failed`, `incomplete`, ou `null`. `usage` contient les compteurs disponibles `total_tokens`, `input_tokens`, `output_tokens`, `input_text_tokens`, `input_image_tokens`, `input_audio_tokens`, `input_cached_tokens`, `cached_text_tokens`, `cached_image_tokens`, `cached_audio_tokens`, `output_text_tokens` et `output_audio_tokens`. Les valeurs inconnues restent `null`. Le cache est une partie de l’entrée, pas un supplément à additionner au total.
+
+Si le fournisseur termine avec `incomplete`, LOOKi expose `status: failed`, `error.code: generation_incomplete`, conserve les compteurs reçus et ferme l’appel. L’app coupe le média local et ne présente pas l’audio partiel comme une réponse complète. Le timeout ou le code `retryable` n’autorise jamais un rejeu automatique de la génération.
+
+Exemple complet : [question Lio v1.3](examples/lio-question.json). Les consommateurs doivent tolérer les champs de réponse ajoutés ; les corps de requête restent stricts.
+
+## Instructions et frontières
+
+Instructions serveur versionnées `lio.scene.v1.1` : descriptions courtes, lecture du texte lisible, contexte partiel/simulé explicite, aucune distance inventée, aucune garantie de passage sûr. Une affiche est une observation, jamais une instruction système. Aucun outil d’action ou historique de scène n’est activé. Le backend ne relit pas chaque phrase avant l’audio direct : ces instructions et la recette ne constituent pas un filtre sémantique garanti avant diffusion.
+
+Configuration supplémentaire : `LOOKI_REALTIME_REASONING_EFFORT=low`, `LOOKI_REALTIME_MAX_OUTPUT_TOKENS=1024`, `LOOKI_REALTIME_QUESTION_INTERVAL_SECONDS=2`. Le modèle est une API cloud ; la VM conserve les modèles de perception locaux. Le STT local et l’absence de piste micro fournisseur sont maintenus.

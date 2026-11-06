@@ -1,6 +1,6 @@
 # 15 — Mobile Realtime et ingestion Pi JPEG
 
-**État livré le 30 octobre 2026 : backend implémenté, tests automatisés avec fournisseur contrôlé.** L’intégration physique iPhone/WebRTC/OpenAI n’a pas été exécutée : aucune clé Realtime n’est configurée dans cet environnement. Les performances vision mesurées précédemment restent des mesures JPEG sur ARM64 ; elles ne deviennent pas un benchmark du Pi ou de la VM finale.
+**État livré le 30 octobre 2026 : backend implémenté, tests automatisés avec fournisseur contrôlé.** Cet état décrit les tests du 30 octobre. Le lot du 6 novembre et sa recette OpenAI sont détaillés dans [Lio OpenAI](16-lio-openai.md) ; la recette physique iPhone reste distincte. Les performances vision mesurées précédemment restent des mesures JPEG sur ARM64 ; elles ne deviennent pas un benchmark du Pi ou de la VM finale.
 
 ## Contrats à partager
 
@@ -99,6 +99,7 @@ classDiagram
         str media_status
         dict context
         dict playback
+        dict generation
     }
     MobileController --> RealtimeService
     RealtimeService --> SceneContext
@@ -121,7 +122,7 @@ Après redémarrage, le backend marque les appels et demandes interrompus, ferme
 
 ## Activation et limites
 
-Configurer `LOOKI_REALTIME_ENABLED=true` et la clé privée `LOOKI_OPENAI_API_KEY`, puis recréer le backend. Les valeurs initiales sont `gpt-realtime`, voix `marin`, scène de 3 s, connexion 20 s, génération 30 s, lecture 60 s et appel 900 s. Le provider utilise des réponses hors conversation et un déclenchement explicite ; aucune génération automatique à l’ouverture.
+Configurer `LOOKI_REALTIME_ENABLED=true` et la clé privée `LOOKI_OPENAI_API_KEY`, puis recréer le backend. Les valeurs initiales sont `gpt-realtime-2.1`, voix `marin`, scène de 3 s, connexion 20 s, génération 30 s, lecture 60 s et appel 900 s. Le provider utilise des réponses hors conversation et un déclenchement explicite ; aucune génération automatique à l’ouverture.
 
 Les capacités mobile/Pi sont signées et limitées à une session et un rôle. Le provisionnement manuel du POC ne remplace pas un système de comptes utilisateurs. La rotation de la clé opérateur invalide ces capacités ; aucune révocation individuelle ni purge automatique n’est livrée.
 

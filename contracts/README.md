@@ -1,6 +1,6 @@
 # Contrats LOOKi — API v1
 
-**Contrats v1.2 livrés le 30 octobre 2026.** Pour une nouvelle intégration, suivre les interfaces ci-dessous. Le Pi envoie du JPEG, également utilisé pour les images transmises au modèle ; les nouveaux PNG sont refusés. Les anciennes questions WSS sont réservées au diagnostic opérateur ; le jeton mobile doit utiliser HTTP.
+**Mobile v1.3 (6 novembre 2026), Pi JPEG v1.2, alertes et accès conservés.** Pour une nouvelle intégration, suivre les interfaces ci-dessous. Le Pi envoie du JPEG, également utilisé pour les images transmises au modèle ; les nouveaux PNG sont refusés. Les anciennes questions WSS sont réservées au diagnostic opérateur ; le jeton mobile doit utiliser HTTP.
 
 | Interface | Contrat normatif |
 | --- | --- |
