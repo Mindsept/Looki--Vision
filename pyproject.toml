@@ -34,6 +34,10 @@ line-length = 100
 select = ["E", "F", "I", "UP", "B", "ASYNC"]
 ignore = ["E501", "B008"]
 
+[tool.ruff.lint.per-file-ignores]
+# This sequential CLI reads manifests/source hashes before starting request timers.
+"scripts/llm_benchmark/runner.py" = ["ASYNC240"]
+
 # The deployed POC uses CPU inference. Avoid downloading CUDA on Linux hosts.
 [tool.uv.sources]
 torch = [{ index = "pytorch-cpu", marker = "sys_platform == 'linux'" }]

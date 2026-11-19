@@ -131,12 +131,15 @@ async def freeze_scene(db, session_id, request_id, text, received_at, max_age):
     return context
 
 
-def image_input(data):
+def image_input(data, *, max_side=768, jpeg_quality=85):
+    """Encode the exact model input; benchmark options do not change production defaults."""
+    if not 128 <= max_side <= 2048 or not 1 <= jpeg_quality <= 95:
+        raise ValueError("Invalid image encoding profile")
     with Image.open(io.BytesIO(data)) as original:
         image = original.convert("RGB")
-        image.thumbnail((768, 768))
+        image.thumbnail((max_side, max_side))
         out = io.BytesIO()
-        image.save(out, format="JPEG", quality=85)
+        image.save(out, format="JPEG", quality=jpeg_quality)
     return {
         "type": "input_image",
         "image_url": "data:image/jpeg;base64," + base64.b64encode(out.getvalue()).decode(),

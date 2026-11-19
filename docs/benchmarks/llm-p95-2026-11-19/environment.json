@@ -1,0 +1,23 @@
+{
+  "started_at": "2026-11-19T13:38:24.235338+00:00",
+  "system": "Darwin",
+  "machine": "arm64",
+  "python": "3.12.14",
+  "base_git_revision": "da3790a0f483c6723bdcf78bcea559935eeac027",
+  "working_tree_dirty": true,
+  "source_sha256": {
+    "runner.py": "4289b5abb6055e09fb4b13ea5851f0e44a07967e168fd12bdc955cbc3156c6f7",
+    "__init__.py": "de8d160f44348724ae47e3fd4c024fd7a124a8afea47d6764f526fd1a377e0e5",
+    "providers.py": "4cb1fa075bcd0d11b5cad7f92d4b6b47a0c525588b740b18ffc40878ed67c96e",
+    "statistics.py": "b909561867ca8c8d358079c6b823e0fc5ab98297f14a1e4ad5b9ae1e0a94760f",
+    "corpus.py": "88339d39ece6f07a638fcf9da856fea92bd2b0bbe7a6f517d7658f16127ea3bf",
+    "app/services/scene_context.py": "5b2135f6017f73fed693f49cc89fa99f7e3178ca06ab252b89d61d8204bfeb03"
+  },
+  "packages": {
+    "httpx": "0.28.1",
+    "websockets": "15.0.1",
+    "pillow": "12.3.0"
+  },
+  "deployment": "local_cli_to_openai_cloud",
+  "vm_benchmark": false
+}

@@ -40,6 +40,7 @@ flowchart TD
 | [15 — Mobile Realtime et Pi](15-mobile-realtime-et-pi.md) | Contrats, classes, tables et limites de validation | Mobile, Embedded, backend |
 | [16 — Lio OpenAI](16-lio-openai.md) | Realtime 2.1, STT local, configuration, banc audio, métriques et purge | Backend, mobile, exploitation |
 | [17 — Recette Lio](17-recette-lio.md) | Appels OpenAI réels, interruption, mesures, tests logiciels et limites de validation | Backend, mobile, PO |
+| [18 — Benchmark p95 LLM](18-benchmark-llm-p95.md) | Realtime 2.1 / GPT-6 Luna, 1/3/5 images, JPEG 45/65/85, mesures et reproduction | Backend, mobile, PO |
 
 Les formats échangeables se trouvent dans [`../contracts/`](../contracts/README.md). La spécification HTTP est publiée à l’exécution sur `/openapi.json` et `/docs`. Le schéma WebSocket complète OpenAPI, qui ne décrit pas les messages échangés sur une connexion ouverte.
 

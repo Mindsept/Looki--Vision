@@ -95,6 +95,8 @@ Les dates sont les instants de réception/traitement côté serveur ; elles ne r
 
 `generation.usage` contient uniquement des compteurs entiers positifs ou nuls. Une valeur absente reste `null`, jamais zéro estimé. Les détails texte/image/audio et cache sont gardés lorsqu'ils sont fournis. Une annulation ou une perte de contrôle peut empêcher la collecte de l'usage final ; ne pas en déduire un coût nul. Les prix ne sont pas figés dans le code : appliquer les tarifs du projet et du modèle à la date de la campagne. Aucun prompt, SDP ou JPEG n'est ajouté aux logs de mesures.
 
+Le [benchmark du 19 novembre](18-benchmark-llm-p95.md) compare séparément les délais de sortie **texte** de Realtime 2.1 et GPT-6 Luna selon le nombre et la qualité des images. Il ne remplace pas les mesures audio décrites ici et ne change pas le modèle de production.
+
 ## Banc réel navigateur
 
 Ouvrir `/live/?assistant=1`, ou le lien « Lio · banc audio » du Vision lab. Le banc passe par les mêmes routes que le mobile, avec un jeton `mobile` et un WebRTC sans micro. Le data channel observe uniquement les événements ; aucune commande de génération n'y est envoyée. Il ne remplace pas le SDK iOS.

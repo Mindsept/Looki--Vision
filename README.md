@@ -79,6 +79,14 @@ docker compose exec backend python scripts/check_realtime.py --remote
 
 Ouvrir [le banc Lio](http://127.0.0.1:8000/live/?assistant=1), préparer une session avec `uv run python scripts/prepare_assistant_session.py`, puis utiliser les jetons du fichier privé `output/assistant-session.json`. Une question déclenche la génération sur des images sélectionnées et le vrai média WebRTC. Le banc permet le rejeu de JPEG réels et montre les captures, états et mesures ; il ne remplace pas la recette iPhone/écouteurs. [Procédure complète, variables, reprises et purge](docs/16-lio-openai.md).
 
+## Comparer la latence des LLM
+
+Le [benchmark p95](docs/18-benchmark-llm-p95.md) compare de vrais appels à `gpt-realtime-2.1` et `gpt-6-luna`, avec **1, 3 ou 5 images**, aux qualités **JPEG 45/65/85**. Le protocole prévoit 100 demandes par combinaison et publie les mesures expurgées, les tailles des entrées, les tokens et les graphiques. Les instructions de reproduction utilisent la clé du `.env` privé.
+
+Le comparatif mesure le premier texte et la fin de réponse. La production conserve Realtime à sortie audio et trois images maximum ; ce benchmark ne mesure pas le premier son entendu sur iPhone.
+
+Campagne du 19 novembre : **1 799 réponses complètes sur 1 800 tentatives**, avec un incident WSS conservé après environ une heure. À **3 images / JPEG 85**, p95 du premier texte : **1,663 s pour Realtime**, **2,980 s pour Luna**. Ces chiffres portent sur des scènes répétées avec cache actif. Le rapport contient les neuf profils, les limites et les commandes de vérification sans appel payant.
+
 ## Démonstration
 
 Pour tester la vision réelle, ouvrir [/live/](http://127.0.0.1:8000/live/), renseigner la clé API locale et choisir une vidéo sur son ordinateur. Le navigateur envoie les JPEG au backend ; les masques, pistes, estimations de profondeur et alertes proviennent des modèles exécutés dans le conteneur. La vidéo NYC utilisée pour nos essais est privée et n’est pas fournie dans le dépôt. Le champ `LOOKI_DEMO_VIDEO_PATH` peut rester vide pour le choix d’un fichier local.

@@ -1,0 +1,174 @@
+{
+  "schema": "looki.llm-corpus.v1",
+  "question": "D\u00e9cris bri\u00e8vement les \u00e9l\u00e9ments visibles devant moi et leur position dans la sc\u00e8ne r\u00e9cente.",
+  "scenes": [
+    {
+      "id": "MOT17-05-DPM",
+      "source_url": "https://motchallenge.net/sequenceVideos/MOT17-05-DPM-raw.mp4",
+      "source_sha256": "29267a1a080b26ea195ba606b9c5331ad05e3db90a1eed8ed22455b0c34c00de",
+      "frames": [
+        {
+          "file": "MOT17-05-DPM-0.png",
+          "sha256": "0c576ba693d5d925f86ac7927d4af419ee6efd049c92f0fbe04a759660cf0069",
+          "source_time_seconds": 2,
+          "width": 640,
+          "height": 480
+        },
+        {
+          "file": "MOT17-05-DPM-1.png",
+          "sha256": "a4c943ec4ec602fc4eee793f5a7886e2c92a5d6efbd1e1bda00ee137b6a7774e",
+          "source_time_seconds": 2.5,
+          "width": 640,
+          "height": 480
+        },
+        {
+          "file": "MOT17-05-DPM-2.png",
+          "sha256": "96250296e72981b439f116f1d73239e03601774f78180add7dad1e4e41fded7c",
+          "source_time_seconds": 3,
+          "width": 640,
+          "height": 480
+        },
+        {
+          "file": "MOT17-05-DPM-3.png",
+          "sha256": "e08069fe088c4925f3fe43fc75b03b24e46bbc9a7d4e8a83cd752ea76aae750f",
+          "source_time_seconds": 3.5,
+          "width": 640,
+          "height": 480
+        },
+        {
+          "file": "MOT17-05-DPM-4.png",
+          "sha256": "3ea23e3d9d25935c10c231bd0ba2f3daeb773093ff75383ede2c801277c21c69",
+          "source_time_seconds": 4,
+          "width": 640,
+          "height": 480
+        }
+      ]
+    },
+    {
+      "id": "MOT17-09-DPM",
+      "source_url": "https://motchallenge.net/sequenceVideos/MOT17-09-DPM-raw.mp4",
+      "source_sha256": "44472faa5643b173fa9b0d4837d3018cd1f5c4a3f13ab4bc9f865cf552022f9d",
+      "frames": [
+        {
+          "file": "MOT17-09-DPM-0.png",
+          "sha256": "c05703a0f8e7a75e2c2b5b6260eb977a2e9a2246ab3b4b4ae920879da8dfd09a",
+          "source_time_seconds": 2,
+          "width": 960,
+          "height": 540
+        },
+        {
+          "file": "MOT17-09-DPM-1.png",
+          "sha256": "80d2561ce8725b581c843597cff01ffd53b39fb73fb2d797e891e11cbddc67b4",
+          "source_time_seconds": 2.5,
+          "width": 960,
+          "height": 540
+        },
+        {
+          "file": "MOT17-09-DPM-2.png",
+          "sha256": "b36f3ce5e3da83b38b79665414b743270784d0e0850dd793b9a29f615d04dbd3",
+          "source_time_seconds": 3,
+          "width": 960,
+          "height": 540
+        },
+        {
+          "file": "MOT17-09-DPM-3.png",
+          "sha256": "621cb5e6d6968435c82e8e1cce86db35efb153d3d7dab2c1476028f600ea2ccb",
+          "source_time_seconds": 3.5,
+          "width": 960,
+          "height": 540
+        },
+        {
+          "file": "MOT17-09-DPM-4.png",
+          "sha256": "27b0e28bc663328c775974587ea2904b6966ffbbfb5d2445179a85f9557e510a",
+          "source_time_seconds": 4,
+          "width": 960,
+          "height": 540
+        }
+      ]
+    },
+    {
+      "id": "MOT20-01",
+      "source_url": "https://motchallenge.net/sequenceVideos/MOT20-01-raw.mp4",
+      "source_sha256": "0105c42857c50f73c6ec50d3456f9bb8a04cbe45944bf7bbc3c77dc755feeae8",
+      "frames": [
+        {
+          "file": "MOT20-01-0.png",
+          "sha256": "48722d2b2c0d398e202e074efc75532a501a8f7bf0f619df434cae9e2099570a",
+          "source_time_seconds": 2,
+          "width": 960,
+          "height": 540
+        },
+        {
+          "file": "MOT20-01-1.png",
+          "sha256": "0311407022b122b4dd864c832324be21e7502f6b7fe6c443f2cf90d1bb387ed3",
+          "source_time_seconds": 2.5,
+          "width": 960,
+          "height": 540
+        },
+        {
+          "file": "MOT20-01-2.png",
+          "sha256": "87f9e96217c7cb260d9f8cf6c8228a5467c6ebf47f35dd07ec9c7341a42dfad6",
+          "source_time_seconds": 3,
+          "width": 960,
+          "height": 540
+        },
+        {
+          "file": "MOT20-01-3.png",
+          "sha256": "a917f01c4b622ff35ce4e086a20cc693dc85f73d6bd5dedf493a5a861584e80b",
+          "source_time_seconds": 3.5,
+          "width": 960,
+          "height": 540
+        },
+        {
+          "file": "MOT20-01-4.png",
+          "sha256": "f9acadf425d4407d2af8ace15e2539fc3fc7ee081851a010ac4274dce74a6e5e",
+          "source_time_seconds": 4,
+          "width": 960,
+          "height": 540
+        }
+      ]
+    },
+    {
+      "id": "MOT20-05",
+      "source_url": "https://motchallenge.net/sequenceVideos/MOT20-05-raw.mp4",
+      "source_sha256": "e5d1099517a3d5fe8cded2035fce54ff641171b3be5b97cfcb774db90a64bc8e",
+      "frames": [
+        {
+          "file": "MOT20-05-0.png",
+          "sha256": "ec1af8d22075752f21e7394364f6d5e8e3f1c2bbc1bf4f7bc09ad2f59170289f",
+          "source_time_seconds": 2,
+          "width": 826,
+          "height": 540
+        },
+        {
+          "file": "MOT20-05-1.png",
+          "sha256": "9cd44578668342f2725a98084ebf74216d8e8c2502e33d480d3675b52141704d",
+          "source_time_seconds": 2.5,
+          "width": 826,
+          "height": 540
+        },
+        {
+          "file": "MOT20-05-2.png",
+          "sha256": "2e87a5fe1bf8a17dd4e5cd594f77a91f67ba5ef8e94b714ee28ab75fbcc727de",
+          "source_time_seconds": 3,
+          "width": 826,
+          "height": 540
+        },
+        {
+          "file": "MOT20-05-3.png",
+          "sha256": "4c256ec91dca0d4b83344e0f77a1b50c93bcabf2281c432654926c08905e3c4f",
+          "source_time_seconds": 3.5,
+          "width": 826,
+          "height": 540
+        },
+        {
+          "file": "MOT20-05-4.png",
+          "sha256": "060ae6fa516d40901a6224f1174a7bfa0773cf5b8d0508b542637820577b15cf",
+          "source_time_seconds": 4,
+          "width": 826,
+          "height": 540
+        }
+      ]
+    }
+  ]
+}

@@ -39,3 +39,5 @@ Lors d’un changement de code, mettre à jour le `.mmd` concerné et les explic
 - [17 — Cycle Realtime](17-mobile-realtime.mmd) et [18 — Classes Realtime](18-classes-realtime.mmd) : [chapitre 15](../15-mobile-realtime-et-pi.md).
 
 - [20 — Génération Lio](20-lio-generation.mmd) et [21 — Mesures](21-lio-mesures.mmd) : [configuration et recette OpenAI](../16-lio-openai.md).
+
+- [22 — Benchmark LLM](22-benchmark-llm.mmd) : [périmètre chronométré et protocole p95](../18-benchmark-llm-p95.md).

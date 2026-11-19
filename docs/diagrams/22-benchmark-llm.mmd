@@ -1,0 +1,15 @@
+sequenceDiagram
+    participant C as Corpus réel
+    participant B as Banc Python
+    participant O as OpenAI
+    participant R as Résultats
+    C->>B: Captures figées et JPEG vérifiés
+    B->>O: Préparer la connexion
+    O-->>B: Prête
+    Note over B: Départ du chronomètre
+    B->>O: Même question et 1, 3 ou 5 images
+    O-->>B: Premier delta texte
+    B->>R: TTFT
+    O-->>B: Réponse terminée et usage
+    B->>R: Fin, statut et tokens
+    Note over R: p95 sur 100 demandes par profil
