@@ -1,5 +1,7 @@
 # LOOKi — Documentation du backend principal
 
+[Déploiement GCP, HTTPS et test des lunettes dans le navigateur](23-deploiement-gcp-et-lunettes.md).
+
 Ce dossier décrit le prototype livré à la racine de ce dépôt (`backend/` dans le workspace LOOKi) : réception des JPEG du Raspberry Pi, analyse asynchrone, proximité et alertes, questions HTTP et audio OpenAI direct vers l’iPhone. Les fonctions prévues pour une phase ultérieure sont explicitement identifiées ; les anciennes campagnes de validation restent datées.
 
 ```mermaid

@@ -177,6 +177,8 @@ Les [essais urbains](docs/09-test-urbain.md) et la [comparaison avec référence
 
 ## Développer et tester
 
+Pour déployer sur GCP et observer les lunettes dans `/live/?mode=pi`, suivre [GCP, HTTPS et mode lunettes](docs/23-deploiement-gcp-et-lunettes.md). Le playbook du dépôt infrastructure installe HTTPS et provisionne les accès Pi/viewer ; aucun secret n'est commité.
+
 Avec Python 3.12 ou 3.13 et `uv` :
 
 ```bash

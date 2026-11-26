@@ -52,6 +52,7 @@ const number = (n, digits = 0) =>
 export default function App() {
   const [alertFilter, setAlertFilter] = React.useState("all");
   const {
+    mode, setMode, piSession, setPiSession, credentialVersion, importPiConfig,
     video,
     apiKey,
     run,
@@ -104,10 +105,10 @@ export default function App() {
   const age = payload ? resultAge(payload.captured_at, now) : null;
   const phaseNames = {
     loading: "Connexion au serveur",
-    ready: "Prêt à analyser",
-    connecting: "Ouverture de session",
-    running: "Analyse en cours",
-    paused: "Lecture en pause",
+    ready: mode === "pi" ? "Prêt à rejoindre les lunettes" : "Prêt à analyser",
+    connecting: mode === "pi" ? "Connexion à la session" : "Ouverture de session",
+    running: mode === "pi" ? "Observation des lunettes" : "Analyse en cours",
+    paused: mode === "pi" ? "Affichage en pause" : "Lecture en pause",
     draining: "Dernières images en cours",
     finished: "Analyse terminée",
     error: "Connexion à vérifier",
@@ -166,16 +167,22 @@ export default function App() {
             <span className="hardware-dot" />
             <div>
               <strong>{config?.cpu_threads ?? 2} threads / modèle</strong>
-              <span>Profil VM · 4 vCPU / 32 Go prévus</span>
+              <span>Vision · quota de 4 vCPU</span>
             </div>
           </div>
         </section>
-        {settings && (
+        <section className="source-mode" aria-label="Source des images">
+          <button aria-pressed={mode === "video"} disabled={!!run.current.session || busy} onClick={() => setMode("video")}>Vidéo de test</button>
+          <button aria-pressed={mode === "pi"} disabled={!!run.current.session || busy} onClick={() => setMode("pi")}>Lunettes · Raspberry Pi</button>
+          <span>{mode === "pi" ? "Les JPEG arrivent directement du Pi. Cette page observe leur analyse." : "Le navigateur extrait et envoie les captures d’une vidéo."}</span>
+        </section>
+        {settings && mode === "video" && (
           <section className="settings-panel">
             <label>
               Clé API{" "}
               <input
                 type="password"
+                key={credentialVersion}
                 disabled={run.current.session != null}
                 defaultValue={apiKey.current}
                 onChange={(e) => {
@@ -193,6 +200,24 @@ export default function App() {
             </span>
           </section>
         )}
+        {mode === "pi" && (
+          <section className="pi-connection" aria-label="Connexion aux lunettes">
+            <div className="pi-intro">
+              <strong>Rejoindre la session des lunettes</strong>
+              <span>Importer le fichier viewer.json fourni au déploiement, puis se connecter.</span>
+            </div>
+            <div className="pi-fields">
+              <label>Session<input aria-label="Session Pi" value={piSession} onChange={(e) => setPiSession(e.target.value)} disabled={!!run.current.session || busy} placeholder="UUID partagé avec les lunettes" autoComplete="off" /></label>
+              <label>Jeton mobile<input aria-label="Jeton du viewer" key={credentialVersion} type="password" defaultValue={apiKey.current} onChange={(e) => { apiKey.current = e.target.value; }} disabled={!!run.current.session || busy} autoComplete="off" placeholder="Accès à cette session uniquement" /></label>
+            </div>
+            <div className="pi-actions">
+              <label className="file-button">Importer viewer.json<input aria-label="Importer la configuration Pi" type="file" accept="application/json,.json" disabled={!!run.current.session || busy} onChange={(e) => { void importPiConfig(e.target.files?.[0]); e.target.value = ""; }} /></label>
+              <button className="primary" disabled={busy} onClick={phase === "running" ? pause : start}>{phase === "running" ? "Figer l’affichage" : run.current.session ? "Reprendre le direct" : "Se connecter aux lunettes"}</button>
+              <button className="secondary" disabled={!run.current.session || busy} onClick={reset}>Déconnecter le viewer</button>
+              <span>Déconnecter ou fermer cette page laisse les lunettes fonctionner. Le jeton reste dans cet onglet.</span>
+            </div>
+          </section>
+        )}
         {error && (
           <div className="notice" role="alert">
             <TriangleAlert size={17} />
@@ -202,25 +227,28 @@ export default function App() {
             </button>
           </div>
         )}
+        {mode === "pi" && age > 3 && (
+          <div className="notice" role="status"><Activity size={17} /><span>Dernière capture âgée de {number(age, 1)} s. Cette image est ancienne ; vérifier le flux des lunettes ou reprendre le direct.</span></div>
+        )}
         <section className="metrics" aria-label="Mesures du flux">
           <Metric
-            label="CADENCE CIBLE"
-            value="15"
-            unit="ips"
-            detail="JPEG envoyés depuis la vidéo"
+            label={mode === "pi" ? "SOURCE" : "CADENCE CIBLE"}
+            value={mode === "pi" ? "Pi" : "15"}
+            unit={mode === "pi" ? "JPEG" : "ips"}
+            detail={mode === "pi" ? "Cadence réglée sur les lunettes" : "JPEG envoyés depuis la vidéo"}
           />
           <Metric
-            label="DÉBIT ENVOYÉ"
-            value={number(view.inputRate, 1)}
-            unit="ips"
-            detail={`${view.accepted} images acceptées`}
+            label={mode === "pi" ? "ANALYSES REÇUES" : "DÉBIT ENVOYÉ"}
+            value={mode === "pi" ? String(view.processed) : number(view.inputRate, 1)}
+            unit={mode === "pi" ? "" : "ips"}
+            detail={mode === "pi" ? "Connexion + historique récent" : `${view.accepted} images acceptées`}
             accent
           />
           <Metric
-            label="DÉBIT ANALYSÉ"
+            label={mode === "pi" ? "FLUX DE RÉSULTATS" : "DÉBIT ANALYSÉ"}
             value={number(view.outputRate, 1)}
             unit="ips"
-            detail={`${view.processed} images réellement calculées`}
+            detail={mode === "pi" ? "Événements récents reçus du backend" : `${view.processed} images réellement calculées`}
           />
           <Metric
             label="DERNIÈRE ANALYSE"
@@ -369,7 +397,7 @@ export default function App() {
                   <Scan size={46} strokeWidth={1} />
                   <h3>Une scène réelle. Des résultats visibles.</h3>
                   <p>
-                    Lance l’analyse pour afficher les objets, leur mouvement
+                    {mode === "pi" ? "Connecte les lunettes pour afficher les objets, leur mouvement" : "Lance l’analyse pour afficher les objets, leur mouvement"}
                     apparent et les alertes sur l’image traitée.
                   </p>
                   <span>
@@ -394,7 +422,7 @@ export default function App() {
               {payload && (
                 <>
                   <div className="scene-corner top-right">
-                    {formatTime(result.media?.time)} · capture vidéo
+                    {mode === "pi" ? `${new Date(payload.captured_at).toLocaleTimeString()} · capture Pi` : `${formatTime(result.media?.time)} · capture vidéo`}
                   </div>
                   <div className="scene-bottom">
                     <span>{objects.length} objets détectés</span>
@@ -415,7 +443,7 @@ export default function App() {
                 séparément
               </span>
             </div>
-            <div className="source-controls">
+            <div className="source-controls" style={mode === "pi" ? { display: "none" } : undefined}>
               <div className="source-preview">
                 <video
                   ref={video}
@@ -501,9 +529,9 @@ export default function App() {
             <div className="queue-note">
               <Activity size={14} />
               <span>
-                {view.superseded} images remplacées avant analyse ·{" "}
-                {view.pending} résultats attendus · {view.clientSkipped}{" "}
-                captures non envoyées · {view.rejected} refus
+                {mode === "pi"
+                  ? `${view.superseded} remplacements signalés dans l’historique reçu · le Pi gère sa cadence et ses réessais`
+                  : `${view.superseded} images remplacées avant analyse · ${view.pending} résultats attendus · ${view.clientSkipped} captures non envoyées · ${view.rejected} refus`}
               </span>
             </div>
           </section>

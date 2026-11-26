@@ -1353,3 +1353,47 @@ footer p {
 .alert-filters { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px 20px; border-bottom: 1px solid var(--line); }
 .alert-filters button { background: transparent; color: #b2c3c8; border: 1px solid #354448; border-radius: 6px; padding: 8px 12px; font: inherit; font-size: 11px; cursor: pointer; }
 .alert-filters button[aria-pressed="true"] { background: #d2ed99; color: #18241c; border-color: #d2ed99; }
+.source-mode {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+.source-mode button {
+  padding: 11px 16px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: transparent;
+  color: var(--muted);
+}
+.source-mode button[aria-pressed="true"] {
+  color: var(--lime);
+  border-color: var(--lime);
+}
+.source-mode span, .pi-intro span, .pi-actions > span {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.6;
+}
+.pi-connection {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 22px;
+  margin-bottom: 22px;
+}
+.pi-intro { display: grid; gap: 6px; margin-bottom: 18px; }
+.pi-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.pi-fields label { display: grid; gap: 8px; font-size: 12px; }
+.pi-fields input {
+  min-width: 0;
+  background: #101a20;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: #e5edf0;
+  padding: 12px;
+  width: 100%;
+}
+.pi-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin-top: 18px; }
+.pi-actions > span { flex-basis: 100%; }
+@media (max-width: 700px) { .pi-fields { grid-template-columns: 1fr; } }

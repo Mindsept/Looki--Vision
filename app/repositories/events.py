@@ -46,3 +46,22 @@ class EventRepository:
         return await self.db.scalar(
             select(Event).where(Event.session_id == session_id, Event.request_id == request_id)
         )
+
+    async def recent(self, session_id: UUID, limit: int = 100) -> list[Event]:
+        rows = list(
+            await self.db.scalars(
+                select(Event)
+                .where(Event.session_id == session_id)
+                .order_by(Event.id.desc())
+                .limit(limit)
+            )
+        )
+        return list(reversed(rows))
+
+    async def latest_of_type(self, session_id: UUID, event_type: str) -> Event | None:
+        return await self.db.scalar(
+            select(Event)
+            .where(Event.session_id == session_id, Event.type == event_type)
+            .order_by(Event.id.desc())
+            .limit(1)
+        )

@@ -1,14 +1,20 @@
 import { useEffect, useRef, useState } from "react";
 import { TARGET_FPS, emptyCounts, windowRate } from "../metrics.js";
+import { parsePiCredentials, realAnalysis } from "../piViewer.js";
 
 export function useLiveVideo() {
+  const [mode, setModeState] = useState(() => new URLSearchParams(location.search).get("mode") === "pi" ? "pi" : "video");
+  const modeRef = useRef(mode);
+  const [piSession, setPiSession] = useState(() => new URLSearchParams(location.search).get("session") || "");
+  const [credentialVersion, setCredentialVersion] = useState(0);
   const video = useRef(null),
     canvas = useRef(document.createElement("canvas"));
-  const apiKey = useRef("looki-local-dev-key");
+  const apiKey = useRef(mode === "video" && ["localhost", "127.0.0.1"].includes(location.hostname) ? "looki-local-dev-key" : "");
   const run = useRef({
     active: false,
     reviewing: false,
     session: null,
+    owned: false,
     socket: null,
     cursor: 0,
     inflight: false,
@@ -82,6 +88,10 @@ export function useLiveVideo() {
   }
   async function initialize() {
     setError("");
+    if (modeRef.current === "pi") {
+      changePhase("ready");
+      return;
+    }
     changePhase("loading");
     try {
       const cfg = await (await api("/runtime")).json();
@@ -98,6 +108,7 @@ export function useLiveVideo() {
         );
     } catch (e) {
       setError(e.message);
+      setSettings(true);
       changePhase("error");
     }
   }
@@ -107,6 +118,9 @@ export function useLiveVideo() {
       const blob = await (
         await api(`/sessions/${sid}/frames/${event.payload.frame_id}/image`)
       ).blob();
+      const bitmap = await createImageBitmap(blob);
+      const dimensions = { width: bitmap.width, height: bitmap.height };
+      bitmap.close();
       if (
         !mounted.current ||
         run.current.session !== sid ||
@@ -119,7 +133,7 @@ export function useLiveVideo() {
       setFrameUrl(url);
       setResult({
         ...event,
-        media: run.current.metadata.get(event.payload.frame_id),
+        media: { ...dimensions, ...run.current.metadata.get(event.payload.frame_id) },
       });
       setSelected(null);
       if (previous) URL.revokeObjectURL(previous);
@@ -128,19 +142,17 @@ export function useLiveVideo() {
         setError(`Image analysée indisponible : ${e.message}`);
     }
   }
-  function handleEvent(event, sid) {
+  function handleEvent(event, sid, bootstrap = false) {
     const r = run.current;
-    if (r.session !== sid || event.id == null || event.id <= r.cursor) return;
+    if (r.session !== sid || event.session_id !== sid || event.id == null || event.id <= r.cursor) return;
     r.cursor = event.id;
     r.events.push(event);
+    if (modeRef.current === "pi" && r.events.length > 2000) r.events.shift();
     const type = event.type,
       payload = event.payload;
     if (type === "frame.analyzed") {
       r.pending.delete(payload.frame_id);
-      if (
-        payload.simulated !== false ||
-        !["yolo_objects", "yolo_seg_track"].includes(payload.provider)
-      ) {
+      if (!realAnalysis(event)) {
         setError("Résultat simulé ou provider inattendu : analyse arrêtée.");
         pause();
         return;
@@ -148,8 +160,10 @@ export function useLiveVideo() {
       if (payload.metadata?.depth_sample_status === "scheduled")
         r.depthPending.add(payload.frame_id);
       counts.current.processed++;
-      r.processedTimes.push(performance.now());
+      if (!bootstrap && Date.now() - Date.parse(event.timestamp) < 5000)
+        r.processedTimes.push(performance.now());
       r.timings.push(payload.timing_ms);
+      if (modeRef.current === "pi" && r.timings.length > 2000) r.timings.shift();
       if (!r.reviewing) void showFrame(event, sid);
     } else if (type === "frame.depth_analyzed") {
       r.depthPending.delete(payload.frame_id);
@@ -175,6 +189,10 @@ export function useLiveVideo() {
           ...previous,
         ].slice(0, 100),
       );
+    } else if (type === "session.state" && payload.status === "closed" && modeRef.current === "pi") {
+      r.active = false;
+      changePhase("finished");
+      setError("Cette session est fermée. Les résultats restent consultables.");
     }
   }
   async function inspectDepth(event) {
@@ -219,12 +237,18 @@ export function useLiveVideo() {
       run.current.socket = ws;
       let opened = false;
       ws.onopen = () => {
+        if (run.current.session !== sid || run.current.socket !== ws) {
+          ws.close();
+          reject(new Error("Connexion remplacée."));
+          return;
+        }
         opened = true;
         setConnected(true);
         setError("");
         resolve();
       };
       ws.onmessage = ({ data }) => {
+        if (run.current.socket !== ws) return;
         try {
           handleEvent(JSON.parse(data), sid);
         } catch (e) {
@@ -244,9 +268,11 @@ export function useLiveVideo() {
         setConnected(false);
         if (!opened) reject(new Error("Connexion WebSocket refusée"));
         if (run.current.active) {
-          pause();
+          if (modeRef.current === "video") pause();
           setError(
-            "Connexion interrompue. Reprise du journal en cours ; relancer la lecture une fois connecté.",
+            modeRef.current === "pi"
+              ? "Connexion interrompue. Reconnexion automatique ; les lunettes continuent leurs envois."
+              : "Connexion interrompue. Reprise du journal en cours ; relancer la lecture une fois connecté.",
           );
         }
         scheduleReconnect(sid);
@@ -255,16 +281,77 @@ export function useLiveVideo() {
   }
   async function closeSession() {
     const r = run.current,
-      sid = r.session;
+      sid = r.session, owned = r.owned;
     r.active = false;
     r.session = null;
+    r.owned = false;
+    r.displayGeneration++;
     clearTimeout(r.reconnect);
     r.socket?.close();
     r.socket = null;
     setConnected(false);
-    if (sid) await api(`/sessions/${sid}/close`, { method: "POST" });
+    if (sid && owned) await api(`/sessions/${sid}/close`, { method: "POST" });
+  }
+
+  function setMode(value) {
+    if (run.current.session || phaseRef.current === "connecting") return;
+    modeRef.current = value;
+    setModeState(value);
+    setConfig(null);
+    setError("");
+    apiKey.current = "";
+    setCredentialVersion((v) => v + 1);
+    setSettings(value === "video");
+    changePhase("ready");
+  }
+  async function importPiConfig(file) {
+    if (!file || run.current.session) return;
+    try {
+      const value = parsePiCredentials(await file.text(), location.origin);
+      setPiSession(value.session_id);
+      apiKey.current = value.mobile_token;
+      setCredentialVersion((v) => v + 1);
+      setError("");
+    } catch (e) {
+      setError(`Configuration Pi : ${e.message}`);
+    }
+  }
+  async function attachPi() {
+    if (phaseRef.current === "connecting") return;
+    setError("");
+    changePhase("connecting");
+    const sid = piSession.trim();
+    try {
+      if (!/^[0-9a-f-]{36}$/i.test(sid) || !apiKey.current.trim())
+        throw new Error("Renseigner la session et son jeton mobile, ou importer viewer.json.");
+      const r = run.current;
+      if (!r.session) {
+        const snapshot = await (await api(`/sessions/${sid}/live`)).json();
+        if (!["yolo_objects", "yolo_seg_track"].includes(snapshot.runtime.vision_provider))
+          throw new Error("Ce backend n’utilise pas la vision réelle YOLO.");
+        setConfig(snapshot.runtime);
+        r.session = sid;
+        r.owned = false;
+        r.started = performance.now();
+        r.reviewing = true;
+        for (const event of snapshot.recent_events) handleEvent(event, sid, true);
+        r.cursor = snapshot.cursor;
+        if (snapshot.latest_depth) setLastDepth(snapshot.latest_depth);
+        if (realAnalysis(snapshot.latest_frame)) await showFrame(snapshot.latest_frame, sid);
+      }
+      if (r.socket?.readyState !== WebSocket.OPEN) await connectSocket(sid);
+      r.active = true;
+      r.reviewing = false;
+      const latest = r.events.findLast((event) => event.type === "frame.analyzed" && realAnalysis(event));
+      if (latest) void showFrame(latest, sid);
+      changePhase("running");
+    } catch (e) {
+      setError(e.message);
+      changePhase("error");
+    }
   }
   async function start() {
+    if (modeRef.current === "pi") return attachPi();
     if (
       !source ||
       !["yolo_objects", "yolo_seg_track"].includes(config?.vision_provider) ||
@@ -289,6 +376,7 @@ export function useLiveVideo() {
         ).json();
         const r = run.current;
         r.session = session.id;
+        r.owned = true;
         r.cursor = 0;
         r.pending.clear();
         r.depthPending.clear();
@@ -320,6 +408,7 @@ export function useLiveVideo() {
   }
   function pause() {
     run.current.active = false;
+    if (modeRef.current === "pi") run.current.reviewing = true;
     video.current?.pause();
     changePhase("paused");
   }
@@ -329,7 +418,7 @@ export function useLiveVideo() {
     setError("");
     try {
       await closeSession();
-      video.current.currentTime = 0;
+      if (video.current) video.current.currentTime = 0;
       setResult(null);
       setFrameUrl(null);
       setAlerts([]);
@@ -353,7 +442,7 @@ export function useLiveVideo() {
   async function capture(mediaTime) {
     const r = run.current,
       sid = r.session;
-    if (!r.active || !sid) return;
+    if (modeRef.current !== "video" || !r.active || !sid) return;
     if (r.inflight) {
       counts.current.clientSkipped++;
       return;
@@ -403,8 +492,9 @@ export function useLiveVideo() {
     const data = {
       exported_at: new Date().toISOString(),
       session_id: r.session,
-      source: sourceName,
-      target_fps: TARGET_FPS,
+      source: modeRef.current === "pi" ? "Raspberry Pi" : sourceName,
+      target_fps: modeRef.current === "pi" ? null : TARGET_FPS,
+      history_limit: modeRef.current === "pi" ? 2000 : null,
       runtime: config,
       counts: counts.current,
       timing_samples: r.timings,
@@ -445,7 +535,7 @@ export function useLiveVideo() {
         changePhase("finished");
     }, 200);
     const visibility = () => {
-      if (document.hidden && run.current.active) pause();
+      if (modeRef.current === "video" && document.hidden && run.current.active) pause();
     };
     document.addEventListener("visibilitychange", visibility);
     return () => {
@@ -492,6 +582,7 @@ export function useLiveVideo() {
   }, [source]);
 
   return {
+    mode, setMode, piSession, setPiSession, credentialVersion, importPiConfig,
     video,
     apiKey,
     run,

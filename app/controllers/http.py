@@ -148,6 +148,15 @@ async def runtime_info(request: Request):
     }
 
 
+@router.get("/sessions/{session_id}/live", tags=["Live"])
+async def live_snapshot(session_id: UUID, request: Request, response: Response):
+    """Read-only Pi viewer bootstrap. Accepts the session's mobile token or an operator."""
+    response.headers["Cache-Control"] = "no-store"
+    result = await request.app.state.runtime.sessions.live_snapshot(session_id)
+    result["runtime"] = await runtime_info(request)
+    return result
+
+
 @router.get(
     "/demo-video",
     tags=["Live"],

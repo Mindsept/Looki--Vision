@@ -56,3 +56,23 @@ class SessionService:
             return [
                 event_read(row) for row in await EventRepository(db).after(session_id, after, limit)
             ]
+
+    async def live_snapshot(self, session_id: UUID):
+        """Bounded viewer bootstrap; resume WSS after cursor without losing a commit."""
+        from app.services.serialization import event_read
+
+        # Writers use this same lock: the session, cursor and latest results refer
+        # to one committed state, including on PostgreSQL READ COMMITTED.
+        async with self.runtime.write_lock, self.runtime.db.sessions() as db:
+            session = await require_session(SessionRepository(db), session_id)
+            repo = EventRepository(db)
+            events = await repo.recent(session_id)
+            frame = await repo.latest_of_type(session_id, "frame.analyzed")
+            depth = await repo.latest_of_type(session_id, "frame.depth_analyzed")
+            return {
+                "session": session_read(session),
+                "cursor": events[-1].id if events else 0,
+                "recent_events": [event_read(row) for row in events],
+                "latest_frame": event_read(frame) if frame else None,
+                "latest_depth": event_read(depth) if depth else None,
+            }

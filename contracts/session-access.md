@@ -42,6 +42,8 @@ Ce sont des **capacités techniques**, pas une authentification nominative des p
 
 ## Réseau et secrets
 
+Le viewer Pi utilise le `mobile_token` pour `GET /api/v1/sessions/{id}/live` (snapshot en lecture seule), les tickets WSS et les images de cette session. Le snapshot contient `session`, `runtime`, `cursor`, `recent_events` (100 maximum), `latest_frame` et `latest_depth` (événements ou `null`). Reprendre le WSS après `cursor`. Le Pi n'a pas accès à ce snapshot. Déconnecter le viewer ne ferme pas la session. Le provisionnement de fichiers distincts `pi.env` et `viewer.json` est automatisé dans le dépôt infrastructure : [guide](../docs/23-deploiement-gcp-et-lunettes.md).
+
 Exposer le service derrière HTTPS/WSS pour les appareils physiques. Le Compose local publie sur `127.0.0.1:8000` ; il faut configurer le reverse proxy de la VM. Les bases ne sont pas exposées. La clé OpenAI ne quitte jamais le backend et n’est ni le jeton mobile ni le jeton Pi.
 
 Le provisionnement et l’accès sont testés côté serveur avec plusieurs sessions ; la distribution effective des jetons et la politique de conservation restent à intégrer dans les outils d’équipe.
