@@ -133,7 +133,25 @@ async def main():
                 (args.output_dir / "sender.log").write_bytes(output)
                 assert process.returncode == 0, "Embedded sender failed; see sender.log"
                 deadline = asyncio.get_running_loop().time() + 60
-                while not any(e["type"] == "frame.depth_analyzed" for e in received.values()):
+
+                def pending_depth():
+                    scheduled = {
+                        e["payload"]["frame_id"]
+                        for e in received.values()
+                        if e["type"] == "frame.analyzed"
+                        and e["payload"].get("metadata", {}).get("depth_sample_status")
+                        == "scheduled"
+                    }
+                    finished = {
+                        e["payload"]["frame_id"]
+                        for e in received.values()
+                        if e["type"] in {"frame.depth_analyzed", "depth.failed"}
+                    }
+                    return scheduled - finished
+
+                while pending_depth() or not any(
+                    e["type"] == "frame.depth_analyzed" for e in received.values()
+                ):
                     assert asyncio.get_running_loop().time() < deadline, (
                         "No real depth result received"
                     )
@@ -166,6 +184,11 @@ async def main():
                 assert all(url.endswith("/ws-ticket") for url in browser_writes), browser_writes
                 analyzed = [e for e in received.values() if e["type"] == "frame.analyzed"]
                 assert analyzed and all(e["payload"]["simulated"] is False for e in analyzed)
+                assert all(
+                    e["payload"]["code"] == "stale_depth"
+                    for e in received.values()
+                    if e["type"] == "depth.failed"
+                ), "Unexpected depth worker failure"
                 summary = {
                     "base_url": base,
                     "session_id": sid,
