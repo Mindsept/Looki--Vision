@@ -1395,5 +1395,19 @@ footer p {
   width: 100%;
 }
 .pi-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin-top: 18px; }
+.pi-actions button, .pi-actions .file-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 14px;
+  min-height: 40px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.pi-actions button.primary { background: var(--lime); color: #10171b; border-color: var(--lime); }
+.pi-actions button.secondary { background: transparent; color: #e9edef; }
 .pi-actions > span { flex-basis: 100%; }
 @media (max-width: 700px) { .pi-fields { grid-template-columns: 1fr; } }

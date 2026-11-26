@@ -281,7 +281,7 @@ export default function App() {
               {lastDepth ? (
                 <>
                   <strong>
-                    Capture {formatTime(lastDepth.media?.time)} ·{" "}
+                    Capture {mode === "pi" ? new Date(lastDepth.payload.captured_at).toLocaleTimeString() : formatTime(lastDepth.media?.time)} ·{" "}
                     {number(lastDepth.payload.timing_ms?.depth_job_total_ms)} ms
                   </strong>
                   <p>
@@ -684,7 +684,7 @@ export default function App() {
                     <span className="alert-type">
                       {event.type}{" "}
                       <small>
-                        #{event.id} · vidéo {formatTime(event.media?.time)}
+                        #{event.id} · {mode === "pi" ? `Pi ${new Date(event.timestamp).toLocaleTimeString()}` : `vidéo ${formatTime(event.media?.time)}`}
                       </small>
                     </span>
                     <strong>{event.payload.text}</strong>
@@ -763,7 +763,7 @@ export default function App() {
           <span>
             LOOKi <b>/</b> Vision lab
           </span>
-          <p>Images réelles · inférence locale · aucune distance inventée</p>
+          <p>Images réelles · inférence serveur · aucune distance inventée</p>
           <span>POC · {config?.depth_backend || "UniDepthV2"}</span>
         </footer>
       </main>

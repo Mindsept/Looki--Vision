@@ -207,10 +207,21 @@ export function useLiveVideo() {
       event.type === "alert.proximity" && config?.decoupled_depth
         ? "frame.depth_analyzed"
         : "frame.analyzed";
-    const analyzed = run.current.events.find(
+    let analyzed = run.current.events.find(
       (e) => e.type === type && e.payload.frame_id === event.payload.frame_id,
     );
-    if (!analyzed) return;
+    if (!analyzed) {
+      try {
+        const path = `/sessions/${run.current.session}/frames/${event.payload.frame_id}`;
+        const stored = await (await api(type === "frame.depth_analyzed" ? `${path}/depth` : path)).json();
+        const payload = type === "frame.depth_analyzed" ? stored.payload : stored;
+        if (!payload) throw new Error("Analyse associée indisponible.");
+        analyzed = { ...event, type, payload };
+      } catch (e) {
+        setError(e.message);
+        return;
+      }
+    }
     await inspectDepth(analyzed);
     setRaw(event);
   }
@@ -408,6 +419,7 @@ export function useLiveVideo() {
   }
   function pause() {
     run.current.active = false;
+    run.current.displayGeneration++;
     if (modeRef.current === "pi") run.current.reviewing = true;
     video.current?.pause();
     changePhase("paused");
